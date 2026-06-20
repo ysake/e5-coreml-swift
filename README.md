@@ -92,6 +92,13 @@ swift run e5-keyword-graph \
   --output edges.csv \
   --top-k 10 \
   --threshold 0.82
+
+swift run e5-keyword-graph \
+  --input embeddings.jsonl \
+  --output graph.dot \
+  --format dot \
+  --top-k 10 \
+  --threshold 0.82
 ```
 
 Development smoke test without model assets:
@@ -353,6 +360,13 @@ swift run e5-embed-batch \
 swift run e5-keyword-graph \
   --input embeddings.jsonl \
   --output edges.csv \
+  --top-k 10 \
+  --threshold 0.82
+
+swift run e5-keyword-graph \
+  --input embeddings.jsonl \
+  --output graph.dot \
+  --format dot \
   --top-k 10 \
   --threshold 0.82
 ```

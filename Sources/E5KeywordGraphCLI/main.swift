@@ -27,6 +27,7 @@ struct E5KeywordGraphCommand {
 
 private enum GraphFormat: String {
     case csv
+    case dot
     case graphml
     case json
 }
@@ -39,7 +40,7 @@ private struct GraphOptions {
     Options:
       --input <path>                      JSONL from e5-embed-batch. Use '-' for stdin.
       --output <path>                     Output file path. Use '-' for stdout.
-      --format csv|graphml|json           Default: csv
+      --format csv|dot|graphml|json       Default: csv
       --top-k <n>                         Default: 10
       --threshold <score>                 Default: 0.0
     """
@@ -164,6 +165,8 @@ private struct GraphOptions {
         switch format {
         case .csv:
             return renderCSV(edges: edges)
+        case .dot:
+            return renderDOT(records: records, edges: edges)
         case .graphml:
             return renderGraphML(records: records, edges: edges)
         case .json:
@@ -217,6 +220,33 @@ private struct GraphOptions {
         return lines.joined(separator: "\n") + "\n"
     }
 
+    private func renderDOT(records: [StoredEmbedding], edges: [KeywordGraphEdge]) -> String {
+        var lines: [String] = [
+            "graph keyword_graph {",
+            "  graph [layout=sfdp, overlap=scale, splines=true, outputorder=edgesfirst];",
+            "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#f8fafc\", color=\"#94a3b8\", fontname=\"Helvetica\", fontsize=12];",
+            "  edge [color=\"#64748b\", fontname=\"Helvetica\", fontsize=10];"
+        ]
+        lines.reserveCapacity(records.count + edges.count + 6)
+
+        for record in records {
+            lines.append("  \"\(dot(record.id))\" [label=\"\(dot(record.text))\"];")
+        }
+
+        for edge in edges {
+            let score = String(edge.score)
+            let label = String(format: "%.3f", Double(edge.score))
+            let penWidth = String(
+                format: "%.2f",
+                max(0.5, min(6.0, 1.0 + Double(edge.score) * 4.0))
+            )
+            lines.append("  \"\(dot(edge.sourceID))\" -- \"\(dot(edge.targetID))\" [label=\"\(dot(label))\", score=\"\(dot(score))\", weight=\"\(dot(score))\", penwidth=\(penWidth)];")
+        }
+
+        lines.append("}")
+        return lines.joined(separator: "\n") + "\n"
+    }
+
     private func renderGraphML(records: [StoredEmbedding], edges: [KeywordGraphEdge]) -> String {
         var lines: [String] = [
             #"<?xml version="1.0" encoding="UTF-8"?>"#,
@@ -243,6 +273,15 @@ private struct GraphOptions {
     private func csv(_ value: String) -> String {
         let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
         return "\"\(escaped)\""
+    }
+
+    private func dot(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\n")
+            .replacingOccurrences(of: "\t", with: "\\t")
     }
 
     private func xml(_ value: String) -> String {
@@ -302,7 +341,7 @@ extension GraphError: LocalizedError {
         case .unexpectedArgument(let value):
             return "Unexpected argument '\(value)'."
         case .invalidFormat(let value):
-            return "Invalid format '\(value)'. Expected 'csv', 'graphml', or 'json'."
+            return "Invalid format '\(value)'. Expected 'csv', 'dot', 'graphml', or 'json'."
         case .invalidTopK(let value):
             return "Invalid top-k '\(value)'. Expected a positive integer."
         case .invalidThreshold(let value):

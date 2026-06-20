@@ -177,7 +177,7 @@ swift run e5-keyword-graph [options] --input <embeddings.jsonl> --output <graph-
 | --- | --- | --- | --- |
 | `--input` | path or `-` | required | `e5-embed-batch` が出した JSONL です。`-` で stdin を使います。 |
 | `--output` | path or `-` | required | output file path です。`-` で stdout を使います。 |
-| `--format` | `csv`, `graphml`, `json` | `csv` | graph output format です。 |
+| `--format` | `csv`, `dot`, `graphml`, `json` | `csv` | graph output format です。 |
 | `--top-k` | positive integer | `10` | edge deduplication 前に各 keyword について残す近傍数です。 |
 | `--threshold` | numeric score | `0.0` | edge にする最小 similarity score です。 |
 
@@ -209,6 +209,22 @@ swift run e5-keyword-graph \
 ```
 
 GraphML は Gephi や Cytoscape などで開けます。
+
+### DOT / Graphviz 例
+
+```bash
+swift run e5-keyword-graph \
+  --input embeddings.jsonl \
+  --output graph.dot \
+  --format dot \
+  --top-k 10 \
+  --threshold 0.82
+
+sfdp -Tsvg graph.dot -o graph.svg
+```
+
+DOT output は Graphviz の command-line rendering 向けです。keyword の関係 graph には `sfdp` または `neato` が使いやすいです。
+macOS で `sfdp` がない場合は `brew install graphviz` で Graphviz を入れます。
 
 ### JSON 例
 

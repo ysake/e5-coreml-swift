@@ -177,7 +177,7 @@ This is exact search, not ANN. It is simple and dependency-free, but pairwise co
 | --- | --- | --- | --- |
 | `--input` | path or `-` | required | JSONL produced by `e5-embed-batch`. Use `-` for stdin. |
 | `--output` | path or `-` | required | Output file path. Use `-` for stdout. |
-| `--format` | `csv`, `graphml`, `json` | `csv` | Graph output format. |
+| `--format` | `csv`, `dot`, `graphml`, `json` | `csv` | Graph output format. |
 | `--top-k` | positive integer | `10` | Number of nearest neighbors retained per keyword before edge deduplication. |
 | `--threshold` | numeric score | `0.0` | Minimum similarity score for an edge. |
 
@@ -209,6 +209,22 @@ swift run e5-keyword-graph \
 ```
 
 GraphML can be opened by tools such as Gephi and Cytoscape.
+
+### DOT / Graphviz Example
+
+```bash
+swift run e5-keyword-graph \
+  --input embeddings.jsonl \
+  --output graph.dot \
+  --format dot \
+  --top-k 10 \
+  --threshold 0.82
+
+sfdp -Tsvg graph.dot -o graph.svg
+```
+
+DOT output is intended for Graphviz command-line rendering. Use `sfdp` or `neato` for keyword relationship graphs.
+On macOS, install Graphviz with `brew install graphviz` if `sfdp` is not available.
 
 ### JSON Example
 
