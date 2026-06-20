@@ -17,9 +17,15 @@ let package = Package(
             targets: ["E5EmbedCLI"]
         )
     ],
+    dependencies: [
+        .package(url: "https://github.com/huggingface/swift-transformers", from: "1.3.0")
+    ],
     targets: [
         .target(
-            name: "E5EmbeddingCore"
+            name: "E5EmbeddingCore",
+            dependencies: [
+                .product(name: "Tokenizers", package: "swift-transformers")
+            ]
         ),
         .executableTarget(
             name: "E5EmbedCLI",

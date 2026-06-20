@@ -8,6 +8,7 @@ public enum EmbeddingError: Error, Equatable, Sendable {
     case modelAssetMissing(candidates: [String])
     case tokenizerAssetMissing(path: String)
     case tokenizerFileMissing(path: String)
+    case tokenIDOutOfInt32Range(Int)
     case coreMLIntegrationUnavailable(String)
 }
 
@@ -29,6 +30,8 @@ extension EmbeddingError: LocalizedError {
             return "Tokenizer directory not found at \(path)."
         case .tokenizerFileMissing(let path):
             return "Tokenizer file not found at \(path)."
+        case .tokenIDOutOfInt32Range(let tokenID):
+            return "Tokenizer produced token ID \(tokenID), which does not fit in Int32."
         case .coreMLIntegrationUnavailable(let reason):
             return "Core ML embedding integration is not available yet: \(reason)"
         }
