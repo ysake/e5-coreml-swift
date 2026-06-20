@@ -104,9 +104,11 @@ Expected output:
   "model": "intfloat/multilingual-e5-small",
   "purpose": "query",
   "dimension": 384,
-  "embedding": [0.0123, -0.0456]
+  "embedding": [0.0123, -0.0456, "... 382 more values"]
 }
 ```
+
+The `embedding` array contains `dimension` values. It is shortened in this README for readability.
 
 ## Initial target model
 
@@ -347,9 +349,11 @@ swift run e5-embed "車内の収納を増やしたい"
   "model": "intfloat/multilingual-e5-small",
   "purpose": "query",
   "dimension": 384,
-  "embedding": [0.0123, -0.0456]
+  "embedding": [0.0123, -0.0456, "... 残り382個の値"]
 }
 ```
+
+`embedding` 配列には `dimension` 個の値が入ります。このREADMEでは読みやすさのために省略しています。
 
 ## 最初に使うモデル
 

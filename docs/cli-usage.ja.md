@@ -122,11 +122,13 @@ swift run e5-embed-similarity \
 ```json
 {
   "dimension": 384,
-  "embedding": [0.0123, -0.0456],
+  "embedding": [0.0123, -0.0456, "... 残り382個の値"],
   "model": "intfloat/multilingual-e5-small",
   "purpose": "query"
 }
 ```
+
+`embedding` 配列には正確に `dimension` 個の値が入ります。この例では読みやすさのために省略しています。
 
 `e5-embed-similarity` は以下を返します。
 

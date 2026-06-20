@@ -122,11 +122,13 @@ swift run e5-embed-similarity \
 ```json
 {
   "dimension": 384,
-  "embedding": [0.0123, -0.0456],
+  "embedding": [0.0123, -0.0456, "... 382 more values"],
   "model": "intfloat/multilingual-e5-small",
   "purpose": "query"
 }
 ```
+
+The `embedding` array contains exactly `dimension` values. The example is truncated for readability.
 
 `e5-embed-similarity` returns:
 
