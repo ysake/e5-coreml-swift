@@ -1,4 +1,5 @@
 import Foundation
+import CoreML
 
 public struct CoreMLTextEmbedder: TextEmbedder {
     public static let defaultModelName = "intfloat/multilingual-e5-small"
@@ -11,10 +12,14 @@ public struct CoreMLTextEmbedder: TextEmbedder {
     public let modelCandidates: [URL]
     public let tokenizerDirectory: URL
     public let maxSequenceLength: Int
+    public let outputFeatureName: String
+    public let expectedEmbeddingDimension: Int
 
     public init(
         repositoryRoot: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath),
-        maxSequenceLength: Int = 128
+        maxSequenceLength: Int = 128,
+        outputFeatureName: String = "embedding",
+        expectedEmbeddingDimension: Int = 384
     ) throws {
         try self.init(
             modelCandidates: [
@@ -22,14 +27,18 @@ public struct CoreMLTextEmbedder: TextEmbedder {
                 repositoryRoot.appendingPathComponent("Models/E5SmallEmbedding.mlmodelc")
             ],
             tokenizerDirectory: repositoryRoot.appendingPathComponent("Tokenizer"),
-            maxSequenceLength: maxSequenceLength
+            maxSequenceLength: maxSequenceLength,
+            outputFeatureName: outputFeatureName,
+            expectedEmbeddingDimension: expectedEmbeddingDimension
         )
     }
 
     public init(
         modelCandidates: [URL],
         tokenizerDirectory: URL,
-        maxSequenceLength: Int = 128
+        maxSequenceLength: Int = 128,
+        outputFeatureName: String = "embedding",
+        expectedEmbeddingDimension: Int = 384
     ) throws {
         guard maxSequenceLength > 0 else {
             throw EmbeddingError.invalidMaxSequenceLength(maxSequenceLength)
@@ -38,6 +47,8 @@ public struct CoreMLTextEmbedder: TextEmbedder {
         self.modelCandidates = modelCandidates
         self.tokenizerDirectory = tokenizerDirectory
         self.maxSequenceLength = maxSequenceLength
+        self.outputFeatureName = outputFeatureName
+        self.expectedEmbeddingDimension = expectedEmbeddingDimension
     }
 
     public func embed(_ text: String, purpose: EmbeddingPurpose) async throws -> [Float] {
@@ -45,20 +56,36 @@ public struct CoreMLTextEmbedder: TextEmbedder {
             throw EmbeddingError.emptyInput
         }
 
-        try validateAssets()
+        let modelURL = try validateAssets()
+        let tokenizer = try await HuggingFaceTextTokenizer.load(
+            from: tokenizerDirectory,
+            maxSequenceLength: maxSequenceLength
+        )
+        let tokenizedInput = try await tokenizer.tokenize(text, purpose: purpose)
+        let model = try Self.loadModel(from: modelURL)
+        let inputProvider = try CoreMLTextEmbeddingInputProvider(input: tokenizedInput.coreMLInput)
 
-        _ = purpose.applyPrefix(to: text)
-        throw EmbeddingError.coreMLIntegrationUnavailable(
-            "model and tokenizer assets are present, but tokenizer/Core ML prediction wiring is not implemented in this milestone"
+        let outputProvider: MLFeatureProvider
+        do {
+            outputProvider = try model.prediction(from: inputProvider)
+        } catch {
+            throw EmbeddingError.coreMLPredictionFailed(reason: error.localizedDescription)
+        }
+
+        return try Self.embeddingVector(
+            from: outputProvider,
+            outputFeatureName: outputFeatureName,
+            expectedDimension: expectedEmbeddingDimension
         )
     }
 
-    public func validateAssets(fileManager: FileManager = .default) throws {
-        let modelExists = modelCandidates.contains { candidate in
+    @discardableResult
+    public func validateAssets(fileManager: FileManager = .default) throws -> URL {
+        let modelURL = modelCandidates.first { candidate in
             fileManager.fileExists(atPath: candidate.path)
         }
 
-        guard modelExists else {
+        guard let modelURL else {
             throw EmbeddingError.modelAssetMissing(
                 candidates: modelCandidates.map(\.path)
             )
@@ -77,5 +104,106 @@ public struct CoreMLTextEmbedder: TextEmbedder {
                 throw EmbeddingError.tokenizerFileMissing(path: fileURL.path)
             }
         }
+
+        return modelURL
+    }
+
+    static func loadModel(from modelURL: URL) throws -> MLModel {
+        do {
+            let loadURL: URL
+            switch modelURL.pathExtension {
+            case "mlmodel", "mlpackage":
+                loadURL = try MLModel.compileModel(at: modelURL)
+            default:
+                loadURL = modelURL
+            }
+
+            let configuration = MLModelConfiguration()
+            return try MLModel(contentsOf: loadURL, configuration: configuration)
+        } catch {
+            throw EmbeddingError.coreMLModelLoadFailed(
+                path: modelURL.path,
+                reason: error.localizedDescription
+            )
+        }
+    }
+
+    static func embeddingVector(
+        from outputProvider: MLFeatureProvider,
+        outputFeatureName: String,
+        expectedDimension: Int
+    ) throws -> [Float] {
+        let selectedFeatureName: String
+        if outputProvider.featureNames.contains(outputFeatureName) {
+            selectedFeatureName = outputFeatureName
+        } else if outputProvider.featureNames.count == 1, let onlyFeatureName = outputProvider.featureNames.first {
+            selectedFeatureName = onlyFeatureName
+        } else {
+            throw EmbeddingError.coreMLOutputMissing(
+                name: outputFeatureName,
+                availableOutputs: Array(outputProvider.featureNames)
+            )
+        }
+
+        guard let multiArray = outputProvider.featureValue(for: selectedFeatureName)?.multiArrayValue else {
+            throw EmbeddingError.coreMLOutputIsNotMultiArray(name: selectedFeatureName)
+        }
+
+        var embedding: [Float] = []
+        embedding.reserveCapacity(multiArray.count)
+        for index in 0..<multiArray.count {
+            embedding.append(multiArray[index].floatValue)
+        }
+
+        guard embedding.count == expectedDimension else {
+            throw EmbeddingError.unexpectedEmbeddingDimension(
+                expected: expectedDimension,
+                actual: embedding.count
+            )
+        }
+
+        return embedding
+    }
+}
+
+final class CoreMLTextEmbeddingInputProvider: MLFeatureProvider {
+    private let features: [String: MLFeatureValue]
+
+    var featureNames: Set<String> {
+        Set(features.keys)
+    }
+
+    init(input: CoreMLInput) throws {
+        guard input.inputIDs.count == input.attentionMask.count else {
+            throw EmbeddingError.coreMLInputLengthMismatch(
+                inputIDs: input.inputIDs.count,
+                attentionMask: input.attentionMask.count
+            )
+        }
+
+        let inputIDsArray = try Self.makeMultiArray(values: input.inputIDs)
+        let attentionMaskArray = try Self.makeMultiArray(values: input.attentionMask)
+
+        features = [
+            "input_ids": MLFeatureValue(multiArray: inputIDsArray),
+            "attention_mask": MLFeatureValue(multiArray: attentionMaskArray)
+        ]
+    }
+
+    func featureValue(for featureName: String) -> MLFeatureValue? {
+        features[featureName]
+    }
+
+    private static func makeMultiArray(values: [Int32]) throws -> MLMultiArray {
+        let array = try MLMultiArray(
+            shape: [1, NSNumber(value: values.count)],
+            dataType: .int32
+        )
+
+        for (index, value) in values.enumerated() {
+            array[index] = NSNumber(value: value)
+        }
+
+        return array
     }
 }

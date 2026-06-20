@@ -9,7 +9,12 @@ public enum EmbeddingError: Error, Equatable, Sendable {
     case tokenizerAssetMissing(path: String)
     case tokenizerFileMissing(path: String)
     case tokenIDOutOfInt32Range(Int)
-    case coreMLIntegrationUnavailable(String)
+    case coreMLInputLengthMismatch(inputIDs: Int, attentionMask: Int)
+    case coreMLModelLoadFailed(path: String, reason: String)
+    case coreMLPredictionFailed(reason: String)
+    case coreMLOutputMissing(name: String, availableOutputs: [String])
+    case coreMLOutputIsNotMultiArray(name: String)
+    case unexpectedEmbeddingDimension(expected: Int, actual: Int)
 }
 
 extension EmbeddingError: LocalizedError {
@@ -32,8 +37,19 @@ extension EmbeddingError: LocalizedError {
             return "Tokenizer file not found at \(path)."
         case .tokenIDOutOfInt32Range(let tokenID):
             return "Tokenizer produced token ID \(tokenID), which does not fit in Int32."
-        case .coreMLIntegrationUnavailable(let reason):
-            return "Core ML embedding integration is not available yet: \(reason)"
+        case .coreMLInputLengthMismatch(let inputIDs, let attentionMask):
+            return "Core ML input_ids and attention_mask must have equal length, got \(inputIDs) and \(attentionMask)."
+        case .coreMLModelLoadFailed(let path, let reason):
+            return "Failed to load Core ML model at \(path): \(reason)"
+        case .coreMLPredictionFailed(let reason):
+            return "Core ML prediction failed: \(reason)"
+        case .coreMLOutputMissing(let name, let availableOutputs):
+            let joinedOutputs = availableOutputs.sorted().joined(separator: ", ")
+            return "Core ML output '\(name)' not found. Available outputs: \(joinedOutputs)."
+        case .coreMLOutputIsNotMultiArray(let name):
+            return "Core ML output '\(name)' is not an MLMultiArray."
+        case .unexpectedEmbeddingDimension(let expected, let actual):
+            return "Expected embedding dimension \(expected), got \(actual)."
         }
     }
 }
