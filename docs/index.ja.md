@@ -8,6 +8,13 @@
   - 前半: English
   - 後半: 日本語
 
+## CLI の使い方
+
+- [`cli-usage.md`](./cli-usage.md)
+  - English
+- [`cli-usage.ja.md`](./cli-usage.ja.md)
+  - 日本語
+
 ## エージェント引き継ぎ
 
 - [`agent-handoff.md`](./agent-handoff.md)
@@ -34,8 +41,9 @@
 エージェントに作業を引き継ぐ場合は、まず以下の順で読むとよいです。
 
 1. `README.md`
-2. `docs/agent-handoff.ja.md`
-3. `docs/implementation-plan.ja.md`
-4. `docs/model-conversion-notes.ja.md`
+2. `docs/cli-usage.ja.md`
+3. `docs/agent-handoff.ja.md`
+4. `docs/implementation-plan.ja.md`
+5. `docs/model-conversion-notes.ja.md`
 
 英語で作業するエージェントには、対応する英語版ドキュメントを参照させてください。

@@ -56,8 +56,8 @@ The model package can be large and is ignored by git by default.
 Embedding:
 
 ```bash
-swift run e5-embed "車内の収納を増やしたい"
-swift run e5-embed --purpose passage "セレナの荷室容量を増やすには、車内収納やルーフボックスを検討する。"
+swift run e5-embed "Find more storage space inside my car"
+swift run e5-embed --purpose passage "Cargo organizers and roof boxes can increase available storage in a vehicle."
 ```
 
 Custom asset paths:
@@ -67,32 +67,34 @@ swift run e5-embed \
   --model Models/E5SmallEmbedding.mlpackage \
   --tokenizer Tokenizer \
   --max-length 128 \
-  "テスト"
+  "Find more storage space inside my car"
 ```
 
 Similarity:
 
 ```bash
 swift run e5-embed-similarity \
-  --query "車内の収納を増やしたい" \
-  --passage "セレナの荷物積載量を増やす方法"
+  --query "Find more storage space inside my car" \
+  --passage "Cargo organizers and roof boxes can increase available storage in a vehicle."
 ```
 
 Development smoke test without model assets:
 
 ```bash
-swift run e5-embed --backend deterministic "テスト"
+swift run e5-embed --backend deterministic "Smoke test"
 swift run e5-embed-similarity --backend deterministic \
-  --query "車内の収納を増やしたい" \
-  --passage "セレナの荷物積載量を増やす方法"
+  --query "Find more storage space inside my car" \
+  --passage "Cargo organizers and roof boxes can increase available storage in a vehicle."
 ```
+
+For full command and option details, see [`docs/cli-usage.md`](docs/cli-usage.md).
 
 ## Goal
 
-Build a minimal Swift CLI that accepts Japanese or multilingual text and returns an embedding vector.
+Build a minimal Swift CLI that accepts multilingual text and returns an embedding vector.
 
 ```bash
-swift run e5-embed "車内の収納を増やしたい"
+swift run e5-embed "Find more storage space inside my car"
 ```
 
 Expected output:
@@ -188,31 +190,7 @@ JSON output / similarity search
 
 ## CLI design
 
-### Embed query
-
-```bash
-swift run e5-embed "車内の収納を増やしたい"
-```
-
-Equivalent to:
-
-```bash
-swift run e5-embed --purpose query "車内の収納を増やしたい"
-```
-
-### Embed passage
-
-```bash
-swift run e5-embed --purpose passage "セレナの荷室容量を増やすには、車内収納やルーフボックスを検討する。"
-```
-
-### Similarity demo
-
-```bash
-swift run e5-embed-similarity \
-  --query "車内の収納を増やしたい" \
-  --passage "セレナの荷物積載量を増やす方法"
-```
+For command and option details, see [`docs/cli-usage.md`](docs/cli-usage.md).
 
 ## Implementation notes
 
@@ -256,7 +234,7 @@ Tokenizer/
 
 - `swift build` succeeds.
 - `swift test` succeeds.
-- `swift run e5-embed "テスト"` returns JSON.
+- `swift run e5-embed "test"` returns JSON.
 - Output vector dimension is 384.
 - `query:` and `passage:` prefixes are handled by the CLI.
 - Similar Japanese texts produce higher similarity than unrelated texts.
@@ -351,6 +329,8 @@ swift run e5-embed-similarity --backend deterministic \
   --query "車内の収納を増やしたい" \
   --passage "セレナの荷物積載量を増やす方法"
 ```
+
+コマンドとオプションの詳細は [`docs/cli-usage.ja.md`](docs/cli-usage.ja.md) を参照してください。
 
 ## 目的
 
@@ -453,31 +433,7 @@ JSON出力 / 類似検索
 
 ## CLI設計
 
-### query embedding
-
-```bash
-swift run e5-embed "車内の収納を増やしたい"
-```
-
-これは以下と同等です。
-
-```bash
-swift run e5-embed --purpose query "車内の収納を増やしたい"
-```
-
-### passage embedding
-
-```bash
-swift run e5-embed --purpose passage "セレナの荷室容量を増やすには、車内収納やルーフボックスを検討する。"
-```
-
-### 類似度デモ
-
-```bash
-swift run e5-embed-similarity \
-  --query "車内の収納を増やしたい" \
-  --passage "セレナの荷物積載量を増やす方法"
-```
+コマンドとオプションの詳細は [`docs/cli-usage.ja.md`](docs/cli-usage.ja.md) を参照してください。
 
 ## 実装メモ
 

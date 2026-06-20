@@ -8,6 +8,13 @@ This repository contains the following documents.
   - First half: English
   - Second half: Japanese
 
+## CLI usage
+
+- [`cli-usage.md`](./cli-usage.md)
+  - English
+- [`cli-usage.ja.md`](./cli-usage.ja.md)
+  - Japanese
+
 ## Agent handoff
 
 - [`agent-handoff.md`](./agent-handoff.md)
@@ -34,8 +41,9 @@ This repository contains the following documents.
 For agent handoff, read these first:
 
 1. `README.md`
-2. `docs/agent-handoff.md`
-3. `docs/implementation-plan.md`
-4. `docs/model-conversion-notes.md`
+2. `docs/cli-usage.md`
+3. `docs/agent-handoff.md`
+4. `docs/implementation-plan.md`
+5. `docs/model-conversion-notes.md`
 
 For Japanese-speaking agents, use the `.ja.md` documents.
