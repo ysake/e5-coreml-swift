@@ -207,7 +207,7 @@ private actor CoreMLTextEmbedderRuntime {
     private let expectedEmbeddingDimension: Int
     private var resolvedAssets: CoreMLTextEmbeddingResolvedAssets?
     private var tokenizer: HuggingFaceTextTokenizer?
-    private var model: MLModel?
+    private var model: SendableMLModel?
 
     init(
         assets: CoreMLTextEmbeddingAssets,
@@ -233,7 +233,15 @@ private actor CoreMLTextEmbedderRuntime {
 
         let outputProvider: MLFeatureProvider
         do {
-            outputProvider = try model.prediction(from: inputProvider)
+#if os(macOS)
+            if #available(macOS 14.0, *) {
+                outputProvider = try await model.prediction(from: inputProvider)
+            } else {
+                outputProvider = try model.predictionSynchronously(from: inputProvider)
+            }
+#else
+            outputProvider = try await model.prediction(from: inputProvider)
+#endif
         } catch {
             throw EmbeddingError.coreMLPredictionFailed(reason: error.localizedDescription)
         }
@@ -259,13 +267,15 @@ private actor CoreMLTextEmbedderRuntime {
         return loadedTokenizer
     }
 
-    private func cachedModel() throws -> MLModel {
+    private func cachedModel() throws -> SendableMLModel {
         if let model {
             return model
         }
 
         let resolvedAssets = try cachedAssets()
-        let loadedModel = try CoreMLTextEmbedder.loadModel(from: resolvedAssets.modelURL)
+        let loadedModel = SendableMLModel(
+            model: try CoreMLTextEmbedder.loadModel(from: resolvedAssets.modelURL)
+        )
         model = loadedModel
         return loadedModel
     }
@@ -281,7 +291,79 @@ private actor CoreMLTextEmbedderRuntime {
     }
 }
 
-final class CoreMLTextEmbeddingInputProvider: MLFeatureProvider {
+private struct SendableMLModel: @unchecked Sendable {
+    let model: MLModel
+    private let predictionGate = CoreMLPredictionGate()
+
+    @available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
+    func prediction(from inputProvider: CoreMLTextEmbeddingInputProvider) async throws -> MLFeatureProvider {
+        return try await predictionGate.withLock {
+            try await model.prediction(from: inputProvider)
+        }
+    }
+
+    func predictionSynchronously(from inputProvider: CoreMLTextEmbeddingInputProvider) throws -> MLFeatureProvider {
+        return try predictionGate.withLock {
+            try model.prediction(from: inputProvider)
+        }
+    }
+}
+
+private final class CoreMLPredictionGate: @unchecked Sendable {
+    private let condition = NSCondition()
+    private var isAvailable = true
+    private var asyncWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func withLock<T>(_ body: () throws -> T) rethrows -> T {
+        waitSynchronously()
+        defer { signal() }
+        return try body()
+    }
+
+    func withLock<T>(_ body: () async throws -> T) async rethrows -> T {
+        await wait()
+        defer { signal() }
+        return try await body()
+    }
+
+    private func waitSynchronously() {
+        condition.lock()
+        while !isAvailable {
+            condition.wait()
+        }
+        isAvailable = false
+        condition.unlock()
+    }
+
+    private func wait() async {
+        await withCheckedContinuation { continuation in
+            condition.lock()
+            if isAvailable {
+                isAvailable = false
+                condition.unlock()
+                continuation.resume()
+            } else {
+                asyncWaiters.append(continuation)
+                condition.unlock()
+            }
+        }
+    }
+
+    private func signal() {
+        condition.lock()
+        if asyncWaiters.isEmpty {
+            isAvailable = true
+            condition.signal()
+            condition.unlock()
+        } else {
+            let continuation = asyncWaiters.removeFirst()
+            condition.unlock()
+            continuation.resume()
+        }
+    }
+}
+
+final class CoreMLTextEmbeddingInputProvider: MLFeatureProvider, @unchecked Sendable {
     private let features: [String: MLFeatureValue]
 
     var featureNames: Set<String> {
