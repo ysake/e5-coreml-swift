@@ -21,7 +21,7 @@
 
 ## 最小 iOS smoke app
 
-`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、`Models/E5SmallEmbedding.mlpackage` と `Tokenizer/` の生成済み assets があることを前提にします。Xcode target は assets がない場合に build error にし、存在する場合は app bundle にコピーします。
+`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、`Models/E5SmallEmbedding.mlpackage` と `Tokenizer/` の生成済み assets があることを前提にします。Xcode target は assets の存在を検証し、Resources build phase で app bundle に同梱します。
 
 App を build します。
 
@@ -84,7 +84,7 @@ Tokenizer/
   special_tokens_map.json
 ```
 
-Xcode は `E5SmallEmbedding.mlpackage` を app bundle 内の `E5SmallEmbedding.mlmodelc` に compile する場合があります。また、resource の追加方法によっては tokenizer JSON files が `Tokenizer/` 配下ではなく app bundle root に flatten される場合があります。
+Xcode は `E5SmallEmbedding.mlpackage` を app bundle 内の `E5SmallEmbedding.mlmodelc` に compile する場合があります。Tokenizer JSON files を `Tokenizer/` 配下に保ちたい場合は、`Tokenizer/` を folder reference として追加してください。JSON files を個別に追加すると app bundle root に flatten される場合があります。
 
 `CoreMLTextEmbeddingAssets.appBundle()` は以下の layout を探します。
 

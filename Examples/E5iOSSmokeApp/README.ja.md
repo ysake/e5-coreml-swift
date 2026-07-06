@@ -9,7 +9,7 @@ Models/E5SmallEmbedding.mlpackage
 Tokenizer/
 ```
 
-Xcode target は assets がない場合に build error にし、存在する場合は app bundle にコピーします。App では deterministic smoke result と Core ML smoke result の両方を表示します。
+Xcode target は assets がない場合に build error にし、存在する場合は Resources build phase で app bundle に同梱します。App では deterministic smoke result と Core ML smoke result の両方を表示します。
 
 ## 実行
 

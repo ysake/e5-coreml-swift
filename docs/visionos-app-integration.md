@@ -21,7 +21,7 @@ This package provides the reusable embedding library, macOS validation CLIs, and
 
 ## Minimal iOS smoke app
 
-`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and expects generated assets at `Models/E5SmallEmbedding.mlpackage` and `Tokenizer/`. Its Xcode target fails the build if those assets are missing, then copies them into the app bundle.
+`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and expects generated assets at `Models/E5SmallEmbedding.mlpackage` and `Tokenizer/`. Its Xcode target validates that those assets exist, then bundles them through the Resources build phase.
 
 Build the app:
 
@@ -84,7 +84,7 @@ Tokenizer/
   special_tokens_map.json
 ```
 
-Xcode may compile `E5SmallEmbedding.mlpackage` into `E5SmallEmbedding.mlmodelc` in the app bundle. Depending on how resources are added, tokenizer JSON files may stay under `Tokenizer/` or be flattened into the app bundle resource root.
+Xcode may compile `E5SmallEmbedding.mlpackage` into `E5SmallEmbedding.mlmodelc` in the app bundle. Add `Tokenizer/` as a folder reference when you want tokenizer JSON files to stay under `Tokenizer/`; adding the JSON files individually may flatten them into the app bundle resource root.
 
 `CoreMLTextEmbeddingAssets.appBundle()` checks these layouts:
 

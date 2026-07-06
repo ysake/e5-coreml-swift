@@ -13,6 +13,8 @@
 		000000000000000000000033 /* E5iOSSmokeAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000029 /* E5iOSSmokeAppTests.swift */; };
 		000000000000000000000036 /* E5EmbeddingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 000000000000000000000034 /* E5EmbeddingCore */; };
 		000000000000000000000037 /* E5EmbeddingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 000000000000000000000035 /* E5EmbeddingCore */; };
+		000000000000000000000041 /* E5SmallEmbedding.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000043 /* E5SmallEmbedding.mlpackage */; };
+		000000000000000000000042 /* Tokenizer in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000044 /* Tokenizer */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +34,8 @@
 		000000000000000000000027 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		000000000000000000000028 /* E5SmokeRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E5SmokeRunner.swift; sourceTree = "<group>"; };
 		000000000000000000000029 /* E5iOSSmokeAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E5iOSSmokeAppTests.swift; sourceTree = "<group>"; };
+		000000000000000000000043 /* E5SmallEmbedding.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; name = E5SmallEmbedding.mlpackage; path = ../../Models/E5SmallEmbedding.mlpackage; sourceTree = "<group>"; };
+		000000000000000000000044 /* Tokenizer */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Tokenizer; path = ../../Tokenizer; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +63,7 @@
 			children = (
 				000000000000000000000004 /* E5iOSSmokeApp */,
 				000000000000000000000005 /* E5iOSSmokeAppTests */,
+				000000000000000000000045 /* Local Assets */,
 				000000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +95,15 @@
 			path = E5iOSSmokeAppTests;
 			sourceTree = "<group>";
 		};
+		000000000000000000000045 /* Local Assets */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000043 /* E5SmallEmbedding.mlpackage */,
+				000000000000000000000044 /* Tokenizer */,
+			);
+			name = "Local Assets";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -99,8 +113,8 @@
 			buildPhases = (
 				000000000000000000000014 /* Sources */,
 				000000000000000000000015 /* Frameworks */,
+				000000000000000000000040 /* Validate Local E5 Assets */,
 				000000000000000000000016 /* Resources */,
-				000000000000000000000040 /* Copy Local E5 Assets */,
 			);
 			buildRules = (
 			);
@@ -164,7 +178,7 @@
 			mainGroup = 000000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				000000000000000000000006 /* XCLocalSwiftPackageReference "../../" */,
+				000000000000000000000006 /* XCLocalSwiftPackageReference "../.." */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 000000000000000000000003 /* Products */;
@@ -182,6 +196,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000000000000000000000041 /* E5SmallEmbedding.mlpackage in Resources */,
+				000000000000000000000042 /* Tokenizer in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,8 +211,9 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		000000000000000000000040 /* Copy Local E5 Assets */ = {
+		000000000000000000000040 /* Validate Local E5 Assets */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -208,18 +225,14 @@
 				"$(SRCROOT)/../../Tokenizer/tokenizer_config.json",
 				"$(SRCROOT)/../../Tokenizer/special_tokens_map.json",
 			);
-			name = "Copy Local E5 Assets";
+			name = "Validate Local E5 Assets";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/E5SmallEmbedding.mlpackage",
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tokenizer/tokenizer.json",
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tokenizer/tokenizer_config.json",
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tokenizer/special_tokens_map.json",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\n\nREPO_ROOT=\"${SRCROOT}/../..\"\nMODEL_SOURCE=\"${REPO_ROOT}/Models/E5SmallEmbedding.mlpackage\"\nTOKENIZER_SOURCE=\"${REPO_ROOT}/Tokenizer\"\nDESTINATION=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\nif [ ! -d \"${MODEL_SOURCE}\" ]; then\n  echo \"error: Missing ${MODEL_SOURCE}. Run scripts/convert_e5_small_to_coreml.py before building E5iOSSmokeApp.\"\n  exit 1\nfi\n\nfor file in tokenizer.json tokenizer_config.json special_tokens_map.json; do\n  if [ ! -f \"${TOKENIZER_SOURCE}/${file}\" ]; then\n    echo \"error: Missing ${TOKENIZER_SOURCE}/${file}. Run scripts/convert_e5_small_to_coreml.py before building E5iOSSmokeApp.\"\n    exit 1\n  fi\ndone\n\nmkdir -p \"${DESTINATION}\"\nrm -rf \"${DESTINATION}/E5SmallEmbedding.mlpackage\" \"${DESTINATION}/Tokenizer\"\nditto \"${MODEL_SOURCE}\" \"${DESTINATION}/E5SmallEmbedding.mlpackage\"\nditto \"${TOKENIZER_SOURCE}\" \"${DESTINATION}/Tokenizer\"\n";
+			shellScript = "set -eu\n\nREPO_ROOT=\"${SRCROOT}/../..\"\nMODEL_SOURCE=\"${REPO_ROOT}/Models/E5SmallEmbedding.mlpackage\"\nTOKENIZER_SOURCE=\"${REPO_ROOT}/Tokenizer\"\n\nif [ ! -d \"${MODEL_SOURCE}\" ]; then\n  echo \"error: Missing ${MODEL_SOURCE}. Run scripts/convert_e5_small_to_coreml.py before building E5iOSSmokeApp.\"\n  exit 1\nfi\n\nfor file in tokenizer.json tokenizer_config.json special_tokens_map.json; do\n  if [ ! -f \"${TOKENIZER_SOURCE}/${file}\" ]; then\n    echo \"error: Missing ${TOKENIZER_SOURCE}/${file}. Run scripts/convert_e5_small_to_coreml.py before building E5iOSSmokeApp.\"\n    exit 1\n  fi\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -507,7 +520,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		000000000000000000000006 /* XCLocalSwiftPackageReference "../../" */ = {
+		000000000000000000000006 /* XCLocalSwiftPackageReference "../.." */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../..;
 		};
@@ -516,12 +529,12 @@
 /* Begin XCSwiftPackageProductDependency section */
 		000000000000000000000034 /* E5EmbeddingCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 000000000000000000000006 /* XCLocalSwiftPackageReference "../../" */;
+			package = 000000000000000000000006 /* XCLocalSwiftPackageReference "../.." */;
 			productName = E5EmbeddingCore;
 		};
 		000000000000000000000035 /* E5EmbeddingCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 000000000000000000000006 /* XCLocalSwiftPackageReference "../../" */;
+			package = 000000000000000000000006 /* XCLocalSwiftPackageReference "../.." */;
 			productName = E5EmbeddingCore;
 		};
 /* End XCSwiftPackageProductDependency section */
