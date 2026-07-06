@@ -1,6 +1,6 @@
-# visionOS アプリ組み込み
+# iOS / iPadOS / visionOS アプリ組み込み
 
-この package は、アプリ実行時に E5 model を自動ダウンロードしません。visionOS アプリに組み込む場合は、変換済み Core ML model と tokenizer assets をアプリに同梱します。
+この package は、アプリ実行時に E5 model を自動ダウンロードしません。iOS / iPadOS / visionOS アプリに組み込む場合は、変換済み Core ML model と tokenizer assets をアプリに同梱します。
 
 ## Asset の流れ
 
@@ -12,6 +12,42 @@
 4. アプリ実行時は、`E5EmbeddingCore` が app bundle 内の assets を読み込み、ローカルで tokenization と Core ML inference を行う。
 
 `E5EmbeddingCore` 自体は、実行時に Hugging Face へアクセスしたり、model weights をダウンロードしたり、model files を生成したりしません。
+
+## 対応 app platform
+
+`E5EmbeddingCore` は iOS 17+ と visionOS 1+ を support します。SwiftPM では iPhone / iPad app target のどちらも `.iOS` platform 指定で扱うため、iPadOS からの利用は iOS platform support に含まれます。
+
+この package が提供するのは再利用可能な embedding library、macOS 検証用 CLI、`Examples/E5iOSSmokeApp/` の最小 iOS smoke app です。本番向けの iOS / iPadOS / visionOS app UI target は提供しません。
+
+## 最小 iOS smoke app
+
+`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、`Models/E5SmallEmbedding.mlpackage` と `Tokenizer/` の生成済み assets があることを前提にします。Xcode target は Resources build phase で assets を app bundle に同梱するため、local asset path が存在しない場合は build error になります。
+
+App を build します。
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'generic/platform=iOS Simulator' \
+  build
+```
+
+iOS Simulator tests を実行します。
+
+必要に応じて、Simulator 名は手元に install されている iOS Simulator に置き換えてください。
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+Simulator tests は、deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference を検証します。
+
+Simulator 上では、GPU / MPSGraph backend の問題でゼロベクトルになるケースを避けるため、`CoreMLTextEmbedder` は Core ML model を CPU-only compute units で読み込みます。
 
 ## Assets の生成
 
@@ -34,11 +70,11 @@ Tokenizer/
   special_tokens_map.json
 ```
 
-変換スクリプトの標準は `FLOAT32` です。BrainCopy の visionOS Simulator 検証では、`FLOAT16` 変換 model が L2 norm `0.0000` のゼロベクトルを返したため、visionOS 組み込みでは `FLOAT32` から始めてください。
+変換スクリプトの標準は `FLOAT32` です。BrainCopy の visionOS Simulator 検証では、`FLOAT16` 変換 model が L2 norm `0.0000` のゼロベクトルを返したため、iOS / iPadOS / visionOS 組み込みでは `FLOAT32` から始めてください。
 
 ## App target への asset 追加
 
-以下の生成済み assets を visionOS app target に追加します。
+以下の生成済み assets を iOS / iPadOS / visionOS app target に追加します。
 
 ```text
 E5SmallEmbedding.mlpackage
@@ -48,7 +84,7 @@ Tokenizer/
   special_tokens_map.json
 ```
 
-Xcode は `E5SmallEmbedding.mlpackage` を app bundle 内の `E5SmallEmbedding.mlmodelc` に compile する場合があります。また、resource の追加方法によっては tokenizer JSON files が `Tokenizer/` 配下ではなく app bundle root に flatten される場合があります。
+Xcode は `E5SmallEmbedding.mlpackage` を app bundle 内の `E5SmallEmbedding.mlmodelc` に compile する場合があります。Tokenizer JSON files を `Tokenizer/` 配下に保ちたい場合は、`Tokenizer/` を folder reference として追加してください。JSON files を個別に追加すると app bundle root に flatten される場合があります。
 
 `CoreMLTextEmbeddingAssets.appBundle()` は以下の layout を探します。
 
@@ -113,4 +149,4 @@ let embedding = try await embedder.embed(
 
 ## サイズと配布上の注意
 
-BrainCopy PoC では、生成済み `E5SmallEmbedding.mlpackage` は約 448 MB、tokenizer assets は約 16 MB でした。これらを同梱すると app size が増えます。この package は現時点では bundle 同梱 assets を前提にしています。on-demand download、asset packs、remote model distribution は現在の scope 外です。
+BrainCopy PoC では、生成済み `E5SmallEmbedding.mlpackage` は約 448 MB、tokenizer assets は約 16 MB でした。これらを同梱すると app size が増えます。この package は現時点では iOS / iPadOS / visionOS app の bundle 同梱 assets を前提にしています。on-demand download、asset packs、remote model distribution は現在の scope 外です。

@@ -4,7 +4,7 @@
 
 Core ML に変換した E5 系 embedding モデルを使って、Swift Package Manager の library とコマンドラインツールからローカルで文章ベクトルを生成するためのリポジトリです。
 
-macOS CLI でローカル検証しながら、`E5EmbeddingCore` を visionOS アプリから再利用できる構成にしています。
+macOS CLI でローカル検証しながら、`E5EmbeddingCore` を iOS / iPadOS / visionOS アプリから再利用できる構成にしています。
 
 ## 現在の状態
 
@@ -18,8 +18,9 @@ macOS CLI でローカル検証しながら、`E5EmbeddingCore` を visionOS ア
 - E5 の `query:` / `passage:` prefix 処理
 - Hugging Face `swift-transformers` によるローカル tokenizer 読み込み
 - Core ML 入力生成と prediction 呼び出し
-- visionOS package platform 対応
+- iOS / iPadOS / visionOS package platform 対応
 - app bundle 内の Core ML model / tokenizer asset lookup
+- `Examples/E5iOSSmokeApp/` の最小 iOS smoke app と iOS Simulator test
 - `scripts/convert_e5_small_to_coreml.py` の変換スクリプト
 - pure Swift logic、Core ML 入出力、asset 未配置エラーの unit test
 
@@ -76,7 +77,7 @@ pip install -r requirements-convert.txt
 python scripts/convert_e5_small_to_coreml.py --validate
 ```
 
-変換スクリプトは `FLOAT32` を標準にしています。BrainCopy の visionOS Simulator 検証では `FLOAT16` 変換モデルがゼロベクトルを返したため、visionOS 組み込みではこの標準から始めてください。
+変換スクリプトは `FLOAT32` を標準にしています。BrainCopy の visionOS Simulator 検証では `FLOAT16` 変換モデルがゼロベクトルを返したため、iOS / iPadOS / visionOS 組み込みではこの標準から始めてください。
 
 スクリプトは以下を書き出します。
 
@@ -144,13 +145,27 @@ swift run e5-embed-similarity --backend deterministic \
   --passage "セレナの荷物積載量を増やす方法"
 ```
 
+最小 iOS app の smoke test:
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+必要に応じて、Simulator 名は手元に install されている iOS Simulator に置き換えてください。
+
 コマンドとオプションの詳細は [`docs/cli-usage.ja.md`](docs/cli-usage.ja.md) を参照してください。
 
-## visionOS アプリ組み込み
+## iOS / iPadOS / visionOS アプリ組み込み
 
 詳細な setup、asset 同梱手順、runtime behavior は [`docs/visionos-app-integration.ja.md`](docs/visionos-app-integration.ja.md) を参照してください。
 
 `E5EmbeddingCore` はアプリ実行時に E5 model をダウンロードしません。アプリを build する前に Core ML model と tokenizer files を生成し、その生成済み assets を app target に同梱します。
+
+この package は iOS 17+ と visionOS 1+ を support します。SwiftPM では iPhone / iPad app target のどちらも `.iOS` platform 指定で扱うため、iPadOS からの利用は iOS platform support に含まれます。
 
 Package URL を追加し、library product に依存します。
 
@@ -215,7 +230,8 @@ Tokenizer 入力は E5/XLM-R 系に合わせています。`<pad>` は token ID 
 
 - Swift Package Manager の CLI
 - 再利用可能な `E5EmbeddingCore` library product
-- visionOS アプリからの SwiftPM dependency 利用
+- iOS / iPadOS / visionOS アプリからの SwiftPM dependency 利用
+- Simulator 検証用の最小 iOS smoke app
 - ローカル tokenizer 実行
 - Core ML モデル推論
 - E5 形式の `query:` / `passage:` prefix
@@ -226,7 +242,7 @@ Tokenizer 入力は E5/XLM-R 系に合わせています。`<pad>` は token ID 
 
 現時点では以下は扱いません。
 
-- iOS アプリ UI
+- 本番向け iOS / iPadOS アプリ UI
 - visionOS アプリ UI
 - ベクトル DB 連携
 - 本番向けモデル配布設計

@@ -1,6 +1,6 @@
-# visionOS App Integration
+# iOS / iPadOS / visionOS App Integration
 
-This package does not download the E5 model at app runtime. A visionOS app must bundle the converted Core ML model and tokenizer assets with the app.
+This package does not download the E5 model at app runtime. iOS, iPadOS, and visionOS apps must bundle the converted Core ML model and tokenizer assets with the app.
 
 ## Asset lifecycle
 
@@ -12,6 +12,42 @@ The expected flow is:
 4. At app runtime, `E5EmbeddingCore` loads assets from the app bundle and performs local tokenization and Core ML inference.
 
 `E5EmbeddingCore` itself does not contact Hugging Face, download model weights, or create model files at runtime.
+
+## Supported app platforms
+
+`E5EmbeddingCore` declares iOS 17+ and visionOS 1+ support. SwiftPM uses the `.iOS` platform declaration for both iPhone and iPad app targets, so iPadOS consumption is covered by the iOS platform support.
+
+This package provides the reusable embedding library, macOS validation CLIs, and a minimal iOS smoke app under `Examples/E5iOSSmokeApp/`. It does not provide production iOS, iPadOS, or visionOS app UI targets.
+
+## Minimal iOS smoke app
+
+`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and expects generated assets at `Models/E5SmallEmbedding.mlpackage` and `Tokenizer/`. Its Xcode target bundles those assets through the Resources build phase, so the build fails if the local asset paths are missing.
+
+Build the app:
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'generic/platform=iOS Simulator' \
+  build
+```
+
+Run the iOS Simulator tests:
+
+Replace the simulator name with any installed iOS Simulator if needed.
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+The simulator tests verify deterministic embedding output, app-bundle asset readiness, and asset-backed Core ML inference.
+
+When running on Simulator, `CoreMLTextEmbedder` loads the Core ML model with CPU-only compute units to avoid simulator GPU/MPSGraph backend issues that can produce zero vectors.
 
 ## Generate assets
 
@@ -34,11 +70,11 @@ Tokenizer/
   special_tokens_map.json
 ```
 
-The conversion script defaults to `FLOAT32`. Use that default for visionOS integration; BrainCopy visionOS Simulator testing saw `FLOAT16` converted models return zero vectors with L2 norm `0.0000`.
+The conversion script defaults to `FLOAT32`. Use that default for iOS, iPadOS, and visionOS integration; BrainCopy visionOS Simulator testing saw `FLOAT16` converted models return zero vectors with L2 norm `0.0000`.
 
 ## Add assets to the app target
 
-Add these generated assets to the visionOS app target:
+Add these generated assets to the iOS, iPadOS, or visionOS app target:
 
 ```text
 E5SmallEmbedding.mlpackage
@@ -48,7 +84,7 @@ Tokenizer/
   special_tokens_map.json
 ```
 
-Xcode may compile `E5SmallEmbedding.mlpackage` into `E5SmallEmbedding.mlmodelc` in the app bundle. Depending on how resources are added, tokenizer JSON files may stay under `Tokenizer/` or be flattened into the app bundle resource root.
+Xcode may compile `E5SmallEmbedding.mlpackage` into `E5SmallEmbedding.mlmodelc` in the app bundle. Add `Tokenizer/` as a folder reference when you want tokenizer JSON files to stay under `Tokenizer/`; adding the JSON files individually may flatten them into the app bundle resource root.
 
 `CoreMLTextEmbeddingAssets.appBundle()` checks these layouts:
 
@@ -113,4 +149,4 @@ let embedding = try await embedder.embed(
 
 ## Size and distribution notes
 
-The generated `E5SmallEmbedding.mlpackage` was about 448 MB in the BrainCopy PoC, and tokenizer assets were about 16 MB. Bundling those assets increases app size. This package currently assumes bundled assets; on-demand downloads, asset packs, and remote model distribution are outside the current scope.
+The generated `E5SmallEmbedding.mlpackage` was about 448 MB in the BrainCopy PoC, and tokenizer assets were about 16 MB. Bundling those assets increases app size. This package currently assumes bundled assets for iOS, iPadOS, and visionOS apps; on-demand downloads, asset packs, and remote model distribution are outside the current scope.

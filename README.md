@@ -4,7 +4,7 @@
 
 Swift Package Manager library and command-line tools for generating text embeddings locally with a Core ML converted E5 model.
 
-This repository is a proof of concept for building a reusable embedding layer that can be shared with visionOS apps while keeping macOS CLI tools for local validation.
+This repository is a proof of concept for building a reusable embedding layer that can be shared with iOS, iPadOS, and visionOS apps while keeping macOS CLI tools for local validation.
 
 ## Current status
 
@@ -18,8 +18,9 @@ Implemented:
 - E5 `query:` / `passage:` prefix handling
 - local tokenizer loading with Hugging Face `swift-transformers`
 - Core ML input creation and prediction wiring
-- visionOS package platform support
+- iOS / iPadOS / visionOS package platform support
 - app-bundle asset lookup for Core ML model and tokenizer files
+- minimal iOS smoke app and iOS Simulator tests under `Examples/E5iOSSmokeApp/`
 - conversion script at `scripts/convert_e5_small_to_coreml.py`
 - unit tests for pure Swift logic, Core ML input/output handling, and missing-asset errors
 
@@ -74,7 +75,7 @@ pip install -r requirements-convert.txt
 python scripts/convert_e5_small_to_coreml.py --validate
 ```
 
-The conversion script defaults to `FLOAT32`. Use that default for visionOS integration; BrainCopy visionOS Simulator testing saw `FLOAT16` converted models return zero vectors.
+The conversion script defaults to `FLOAT32`. Use that default for iOS, iPadOS, and visionOS integration; BrainCopy visionOS Simulator testing saw `FLOAT16` converted models return zero vectors.
 
 The script writes:
 
@@ -142,13 +143,27 @@ swift run e5-embed-similarity --backend deterministic \
   --passage "Cargo organizers and roof boxes can increase available storage in a vehicle."
 ```
 
+Minimal iOS app smoke test:
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+Replace the simulator name with any installed iOS Simulator if needed.
+
 For full command and option details, see [`docs/cli-usage.md`](docs/cli-usage.md).
 
-## visionOS app integration
+## iOS / iPadOS / visionOS app integration
 
 For detailed setup, asset packaging, and runtime behavior, see [`docs/visionos-app-integration.md`](docs/visionos-app-integration.md).
 
 `E5EmbeddingCore` does not download the E5 model at app runtime. Generate the Core ML model and tokenizer files before building the app, then bundle those generated assets with the app target.
+
+The package declares iOS 17+ and visionOS 1+ support. SwiftPM uses the `.iOS` platform declaration for both iPhone and iPad app targets, so iPadOS consumption is covered by the iOS platform support.
 
 Add the package by URL and depend on the library product:
 
@@ -213,7 +228,8 @@ This repository covers:
 
 - Swift Package Manager CLI
 - reusable `E5EmbeddingCore` library product
-- visionOS app package consumption
+- iOS / iPadOS / visionOS app package consumption
+- minimal iOS smoke app for Simulator validation
 - local tokenizer execution
 - Core ML model inference
 - E5-style `query:` / `passage:` prefixes
@@ -224,7 +240,7 @@ This repository covers:
 
 This repository does not currently target:
 
-- iOS app UI
+- production iOS / iPadOS app UI
 - visionOS app UI
 - vector database integration
 - production model distribution
