@@ -10,7 +10,7 @@
 ## 利用者向けガイド
 
 - [`cli-usage.ja.md`](cli-usage.ja.md): CLI コマンドとオプションの詳細
-- [`visionos-app-integration.ja.md`](visionos-app-integration.ja.md): アプリ組み込み、asset 同梱、runtime behavior
+- [`visionos-app-integration.ja.md`](visionos-app-integration.ja.md): iOS / iPadOS / visionOS アプリ組み込み、asset 同梱、runtime behavior
 
 英語版:
 

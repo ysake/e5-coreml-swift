@@ -1,6 +1,6 @@
-# visionOS アプリ組み込み
+# iOS / iPadOS / visionOS アプリ組み込み
 
-この package は、アプリ実行時に E5 model を自動ダウンロードしません。visionOS アプリに組み込む場合は、変換済み Core ML model と tokenizer assets をアプリに同梱します。
+この package は、アプリ実行時に E5 model を自動ダウンロードしません。iOS / iPadOS / visionOS アプリに組み込む場合は、変換済み Core ML model と tokenizer assets をアプリに同梱します。
 
 ## Asset の流れ
 
@@ -12,6 +12,12 @@
 4. アプリ実行時は、`E5EmbeddingCore` が app bundle 内の assets を読み込み、ローカルで tokenization と Core ML inference を行う。
 
 `E5EmbeddingCore` 自体は、実行時に Hugging Face へアクセスしたり、model weights をダウンロードしたり、model files を生成したりしません。
+
+## 対応 app platform
+
+`E5EmbeddingCore` は iOS 17+ と visionOS 1+ を support します。SwiftPM では iPhone / iPad app target のどちらも `.iOS` platform 指定で扱うため、iPadOS からの利用は iOS platform support に含まれます。
+
+この package が提供するのは再利用可能な embedding library と macOS 検証用 CLI です。iOS / iPadOS / visionOS の app UI target は提供しません。
 
 ## Assets の生成
 
@@ -34,11 +40,11 @@ Tokenizer/
   special_tokens_map.json
 ```
 
-変換スクリプトの標準は `FLOAT32` です。BrainCopy の visionOS Simulator 検証では、`FLOAT16` 変換 model が L2 norm `0.0000` のゼロベクトルを返したため、visionOS 組み込みでは `FLOAT32` から始めてください。
+変換スクリプトの標準は `FLOAT32` です。BrainCopy の visionOS Simulator 検証では、`FLOAT16` 変換 model が L2 norm `0.0000` のゼロベクトルを返したため、iOS / iPadOS / visionOS 組み込みでは `FLOAT32` から始めてください。
 
 ## App target への asset 追加
 
-以下の生成済み assets を visionOS app target に追加します。
+以下の生成済み assets を iOS / iPadOS / visionOS app target に追加します。
 
 ```text
 E5SmallEmbedding.mlpackage
@@ -113,4 +119,4 @@ let embedding = try await embedder.embed(
 
 ## サイズと配布上の注意
 
-BrainCopy PoC では、生成済み `E5SmallEmbedding.mlpackage` は約 448 MB、tokenizer assets は約 16 MB でした。これらを同梱すると app size が増えます。この package は現時点では bundle 同梱 assets を前提にしています。on-demand download、asset packs、remote model distribution は現在の scope 外です。
+BrainCopy PoC では、生成済み `E5SmallEmbedding.mlpackage` は約 448 MB、tokenizer assets は約 16 MB でした。これらを同梱すると app size が増えます。この package は現時点では iOS / iPadOS / visionOS app の bundle 同梱 assets を前提にしています。on-demand download、asset packs、remote model distribution は現在の scope 外です。
