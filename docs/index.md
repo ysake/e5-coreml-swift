@@ -11,11 +11,13 @@ Start with the root README for setup and quick usage:
 
 - [`cli-usage.md`](cli-usage.md): complete CLI commands and options
 - [`visionos-app-integration.md`](visionos-app-integration.md): iOS / iPadOS / visionOS app integration, asset packaging, and runtime behavior
+- [`../Examples/E5iOSSmokeApp/README.md`](../Examples/E5iOSSmokeApp/README.md): minimal iOS smoke app and Simulator tests
 
 Japanese versions:
 
 - [`cli-usage.ja.md`](cli-usage.ja.md)
 - [`visionos-app-integration.ja.md`](visionos-app-integration.ja.md)
+- [`../Examples/E5iOSSmokeApp/README.ja.md`](../Examples/E5iOSSmokeApp/README.ja.md)
 
 ## Technical notes
 

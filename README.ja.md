@@ -20,6 +20,7 @@ macOS CLI でローカル検証しながら、`E5EmbeddingCore` を iOS / iPadOS
 - Core ML 入力生成と prediction 呼び出し
 - iOS / iPadOS / visionOS package platform 対応
 - app bundle 内の Core ML model / tokenizer asset lookup
+- `Examples/E5iOSSmokeApp/` の最小 iOS smoke app と iOS Simulator test
 - `scripts/convert_e5_small_to_coreml.py` の変換スクリプト
 - pure Swift logic、Core ML 入出力、asset 未配置エラーの unit test
 
@@ -144,6 +145,18 @@ swift run e5-embed-similarity --backend deterministic \
   --passage "セレナの荷物積載量を増やす方法"
 ```
 
+最小 iOS app の smoke test:
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+必要に応じて、Simulator 名は手元に install されている iOS Simulator に置き換えてください。
+
 コマンドとオプションの詳細は [`docs/cli-usage.ja.md`](docs/cli-usage.ja.md) を参照してください。
 
 ## iOS / iPadOS / visionOS アプリ組み込み
@@ -218,6 +231,7 @@ Tokenizer 入力は E5/XLM-R 系に合わせています。`<pad>` は token ID 
 - Swift Package Manager の CLI
 - 再利用可能な `E5EmbeddingCore` library product
 - iOS / iPadOS / visionOS アプリからの SwiftPM dependency 利用
+- Simulator 検証用の最小 iOS smoke app
 - ローカル tokenizer 実行
 - Core ML モデル推論
 - E5 形式の `query:` / `passage:` prefix
@@ -228,7 +242,7 @@ Tokenizer 入力は E5/XLM-R 系に合わせています。`<pad>` は token ID 
 
 現時点では以下は扱いません。
 
-- iOS / iPadOS アプリ UI
+- 本番向け iOS / iPadOS アプリ UI
 - visionOS アプリ UI
 - ベクトル DB 連携
 - 本番向けモデル配布設計

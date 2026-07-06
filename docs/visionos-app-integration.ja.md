@@ -17,7 +17,35 @@
 
 `E5EmbeddingCore` は iOS 17+ と visionOS 1+ を support します。SwiftPM では iPhone / iPad app target のどちらも `.iOS` platform 指定で扱うため、iPadOS からの利用は iOS platform support に含まれます。
 
-この package が提供するのは再利用可能な embedding library と macOS 検証用 CLI です。iOS / iPadOS / visionOS の app UI target は提供しません。
+この package が提供するのは再利用可能な embedding library、macOS 検証用 CLI、`Examples/E5iOSSmokeApp/` の最小 iOS smoke app です。本番向けの iOS / iPadOS / visionOS app UI target は提供しません。
+
+## 最小 iOS smoke app
+
+`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、標準では deterministic embedder を実行します。そのため、生成済み model assets なしで build と test ができます。
+
+App を build します。
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'generic/platform=iOS Simulator' \
+  build
+```
+
+iOS Simulator tests を実行します。
+
+必要に応じて、Simulator 名は手元に install されている iOS Simulator に置き換えてください。
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+Simulator tests は deterministic embedding の出力と app bundle asset status の評価を確認します。生成済み model / tokenizer assets を app target に追加しない限り、完全な Core ML inference の検証は行いません。
 
 ## Assets の生成
 

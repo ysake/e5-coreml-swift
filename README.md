@@ -20,6 +20,7 @@ Implemented:
 - Core ML input creation and prediction wiring
 - iOS / iPadOS / visionOS package platform support
 - app-bundle asset lookup for Core ML model and tokenizer files
+- minimal iOS smoke app and iOS Simulator tests under `Examples/E5iOSSmokeApp/`
 - conversion script at `scripts/convert_e5_small_to_coreml.py`
 - unit tests for pure Swift logic, Core ML input/output handling, and missing-asset errors
 
@@ -142,6 +143,18 @@ swift run e5-embed-similarity --backend deterministic \
   --passage "Cargo organizers and roof boxes can increase available storage in a vehicle."
 ```
 
+Minimal iOS app smoke test:
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+Replace the simulator name with any installed iOS Simulator if needed.
+
 For full command and option details, see [`docs/cli-usage.md`](docs/cli-usage.md).
 
 ## iOS / iPadOS / visionOS app integration
@@ -216,6 +229,7 @@ This repository covers:
 - Swift Package Manager CLI
 - reusable `E5EmbeddingCore` library product
 - iOS / iPadOS / visionOS app package consumption
+- minimal iOS smoke app for Simulator validation
 - local tokenizer execution
 - Core ML model inference
 - E5-style `query:` / `passage:` prefixes
@@ -226,7 +240,7 @@ This repository covers:
 
 This repository does not currently target:
 
-- iOS / iPadOS app UI
+- production iOS / iPadOS app UI
 - visionOS app UI
 - vector database integration
 - production model distribution

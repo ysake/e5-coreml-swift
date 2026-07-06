@@ -17,7 +17,35 @@ The expected flow is:
 
 `E5EmbeddingCore` declares iOS 17+ and visionOS 1+ support. SwiftPM uses the `.iOS` platform declaration for both iPhone and iPad app targets, so iPadOS consumption is covered by the iOS platform support.
 
-This package provides the reusable embedding library and macOS validation CLIs. It does not provide iOS, iPadOS, or visionOS app UI targets.
+This package provides the reusable embedding library, macOS validation CLIs, and a minimal iOS smoke app under `Examples/E5iOSSmokeApp/`. It does not provide production iOS, iPadOS, or visionOS app UI targets.
+
+## Minimal iOS smoke app
+
+`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and runs the deterministic embedder by default, so it can be built and tested without generated model assets.
+
+Build the app:
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'generic/platform=iOS Simulator' \
+  build
+```
+
+Run the iOS Simulator tests:
+
+Replace the simulator name with any installed iOS Simulator if needed.
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
+```
+
+The simulator tests verify deterministic embedding output and app-bundle asset status evaluation. They do not validate full Core ML inference unless generated model and tokenizer assets are added to the app target.
 
 ## Generate assets
 
