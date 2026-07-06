@@ -31,6 +31,33 @@ enum E5SmokeRunner {
         previewCount: Int = 6
     ) async throws -> E5SmokeReport {
         let embedder = DeterministicTextEmbedder()
+        return try await smokeReport(
+            embedder: embedder,
+            text: text,
+            previewCount: previewCount
+        )
+    }
+
+    static func coreMLSmoke(
+        text: String = sampleText,
+        previewCount: Int = 6,
+        bundle: Bundle = .main
+    ) async throws -> E5SmokeReport {
+        let embedder = try CoreMLTextEmbedder(
+            assets: CoreMLTextEmbeddingAssets.appBundle(bundle)
+        )
+        return try await smokeReport(
+            embedder: embedder,
+            text: text,
+            previewCount: previewCount
+        )
+    }
+
+    private static func smokeReport(
+        embedder: TextEmbedder,
+        text: String,
+        previewCount: Int
+    ) async throws -> E5SmokeReport {
         let embedding = try await embedder.embed(text, purpose: .query)
         return E5SmokeReport(
             text: text,

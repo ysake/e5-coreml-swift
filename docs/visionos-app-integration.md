@@ -21,7 +21,7 @@ This package provides the reusable embedding library, macOS validation CLIs, and
 
 ## Minimal iOS smoke app
 
-`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and runs the deterministic embedder by default, so it can be built and tested without generated model assets.
+`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and expects generated assets at `Models/E5SmallEmbedding.mlpackage` and `Tokenizer/`. Its Xcode target fails the build if those assets are missing, then copies them into the app bundle.
 
 Build the app:
 
@@ -45,7 +45,9 @@ xcodebuild \
   test
 ```
 
-The default simulator tests verify deterministic embedding output and app-bundle asset status evaluation without requiring generated assets. Full Core ML inference is covered only by the asset-backed test, which is skipped unless generated model and tokenizer assets are bundled into the app target.
+The simulator tests verify deterministic embedding output, app-bundle asset readiness, and asset-backed Core ML inference.
+
+When running on Simulator, `CoreMLTextEmbedder` loads the Core ML model with CPU-only compute units to avoid simulator GPU/MPSGraph backend issues that can produce zero vectors.
 
 ## Generate assets
 

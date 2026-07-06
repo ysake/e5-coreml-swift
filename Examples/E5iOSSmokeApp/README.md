@@ -1,8 +1,15 @@
 # E5 iOS Smoke App
 
-Minimal iOS app target for checking that `E5EmbeddingCore` can be consumed from an iOS app and tested on iOS Simulator.
+Minimal iOS app target for checking that `E5EmbeddingCore` can be consumed from an iOS app, bundled with generated local assets, and tested on iOS Simulator.
 
-The app intentionally runs the deterministic embedder by default, so it can be built and tested without committing generated Core ML model or tokenizer assets. The bundled asset section still calls `CoreMLTextEmbeddingAssets.appBundle().status()` so app-bundle asset lookup can be inspected when assets are added later.
+The app expects generated assets at the repository root:
+
+```text
+Models/E5SmallEmbedding.mlpackage
+Tokenizer/
+```
+
+The Xcode target fails the build if those assets are missing, then copies them into the app bundle. The app shows both a deterministic smoke result and a Core ML smoke result.
 
 ## Run
 
@@ -34,4 +41,4 @@ xcodebuild \
   test
 ```
 
-The test target verifies deterministic embedding output on iOS Simulator and checks that app-bundle asset status can be evaluated without crashing. An additional asset-backed inference test is skipped unless generated Core ML model and tokenizer assets are bundled into the app target.
+The test target verifies deterministic embedding output, app-bundle asset readiness, and asset-backed Core ML inference on iOS Simulator.

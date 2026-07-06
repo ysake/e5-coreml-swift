@@ -1,8 +1,15 @@
 # E5 iOS Smoke App
 
-`E5EmbeddingCore` を iOS アプリ target から利用し、iOS Simulator 上で test できることを確認するための最小 App です。
+`E5EmbeddingCore` を iOS アプリ target から利用し、生成済み local assets を同梱して、iOS Simulator 上で test できることを確認するための最小 App です。
 
-この App は、生成済み Core ML model / tokenizer assets を commit しなくても build と test ができるように、標準では deterministic embedder を実行します。Bundled Assets セクションでは `CoreMLTextEmbeddingAssets.appBundle().status()` も呼ぶため、後から assets を同梱した場合の app bundle lookup 状態も確認できます。
+この App は、repository root に以下の生成済み assets があることを前提にします。
+
+```text
+Models/E5SmallEmbedding.mlpackage
+Tokenizer/
+```
+
+Xcode target は assets がない場合に build error にし、存在する場合は app bundle にコピーします。App では deterministic smoke result と Core ML smoke result の両方を表示します。
 
 ## 実行
 
@@ -34,4 +41,4 @@ xcodebuild \
   test
 ```
 
-Test target は、iOS Simulator 上で deterministic embedding の出力を検証し、app bundle asset status を評価しても crash しないことを確認します。生成済み Core ML model と tokenizer assets が app target に同梱されている場合だけ、追加の asset-backed inference test が実行されます。
+Test target は、iOS Simulator 上で deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference を検証します。

@@ -17,35 +17,27 @@ final class E5iOSSmokeAppTests: XCTestCase {
         #endif
     }
 
-    func testAppBundleAssetStatusCanBeEvaluatedOnIOSSimulator() {
+    func testAppBundleAssetStatusReportsBundledAssetsOnIOSSimulator() {
         #if os(iOS)
         let status = E5SmokeRunner.assetStatus(bundle: .main)
 
-        if status.isReady {
-            XCTAssertNotNil(status.modelURL)
-            XCTAssertNotNil(status.tokenizerDirectory)
-        } else {
-            XCTAssertNotNil(status.errorDescription)
-        }
+        XCTAssertTrue(status.isReady, status.errorDescription ?? "E5 assets are not ready.")
+        XCTAssertNotNil(status.modelURL)
+        XCTAssertNotNil(status.tokenizerDirectory)
         #else
         throw XCTSkip("This smoke test is intended for iOS Simulator.")
         #endif
     }
 
-    func testAppBundleCoreMLInferenceWhenAssetsAreBundled() async throws {
+    func testAppBundleCoreMLInferenceRunsOnIOSSimulator() async throws {
         #if os(iOS)
-        let assets = CoreMLTextEmbeddingAssets.appBundle(.main)
-        let status = assets.status()
-        guard status.isReady else {
-            throw XCTSkip("Core ML model/tokenizer assets are not bundled: \(status.errorDescription ?? "missing assets")")
-        }
+        let report = try await E5SmokeRunner.coreMLSmoke(text: "テスト", bundle: .main)
 
-        let embedder = try CoreMLTextEmbedder(assets: assets)
-        let embedding = try await embedder.embed("テスト", purpose: .query)
-
-        XCTAssertEqual(embedding.count, 384)
-        XCTAssertFalse(embedding.contains { $0.isNaN || !$0.isFinite })
-        XCTAssertEqual(CosineSimilarity.l2Norm(embedding), 1, accuracy: 0.01)
+        XCTAssertEqual(report.text, "テスト")
+        XCTAssertEqual(report.dimension, 384)
+        XCTAssertEqual(report.l2Norm, 1, accuracy: 0.01)
+        XCTAssertEqual(report.previewValues.count, 6)
+        XCTAssertFalse(report.previewDescription.isEmpty)
         #else
         throw XCTSkip("This smoke test is intended for iOS Simulator.")
         #endif

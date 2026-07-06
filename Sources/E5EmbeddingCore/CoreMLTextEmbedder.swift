@@ -153,6 +153,9 @@ public struct CoreMLTextEmbedder: TextEmbedder {
             }
 
             let configuration = MLModelConfiguration()
+            #if targetEnvironment(simulator)
+            configuration.computeUnits = .cpuOnly
+            #endif
             return try MLModel(contentsOf: loadURL, configuration: configuration)
         } catch {
             throw EmbeddingError.coreMLModelLoadFailed(

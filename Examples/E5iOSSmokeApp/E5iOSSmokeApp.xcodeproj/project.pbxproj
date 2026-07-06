@@ -100,6 +100,7 @@
 				000000000000000000000014 /* Sources */,
 				000000000000000000000015 /* Frameworks */,
 				000000000000000000000016 /* Resources */,
+				000000000000000000000040 /* Copy Local E5 Assets */,
 			);
 			buildRules = (
 			);
@@ -192,6 +193,35 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		000000000000000000000040 /* Copy Local E5 Assets */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/../../Models/E5SmallEmbedding.mlpackage",
+				"$(SRCROOT)/../../Tokenizer/tokenizer.json",
+				"$(SRCROOT)/../../Tokenizer/tokenizer_config.json",
+				"$(SRCROOT)/../../Tokenizer/special_tokens_map.json",
+			);
+			name = "Copy Local E5 Assets";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/E5SmallEmbedding.mlpackage",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tokenizer/tokenizer.json",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tokenizer/tokenizer_config.json",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Tokenizer/special_tokens_map.json",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n\nREPO_ROOT=\"${SRCROOT}/../..\"\nMODEL_SOURCE=\"${REPO_ROOT}/Models/E5SmallEmbedding.mlpackage\"\nTOKENIZER_SOURCE=\"${REPO_ROOT}/Tokenizer\"\nDESTINATION=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\nif [ ! -d \"${MODEL_SOURCE}\" ]; then\n  echo \"error: Missing ${MODEL_SOURCE}. Run scripts/convert_e5_small_to_coreml.py before building E5iOSSmokeApp.\"\n  exit 1\nfi\n\nfor file in tokenizer.json tokenizer_config.json special_tokens_map.json; do\n  if [ ! -f \"${TOKENIZER_SOURCE}/${file}\" ]; then\n    echo \"error: Missing ${TOKENIZER_SOURCE}/${file}. Run scripts/convert_e5_small_to_coreml.py before building E5iOSSmokeApp.\"\n    exit 1\n  fi\ndone\n\nmkdir -p \"${DESTINATION}\"\nrm -rf \"${DESTINATION}/E5SmallEmbedding.mlpackage\" \"${DESTINATION}/Tokenizer\"\nditto \"${MODEL_SOURCE}\" \"${DESTINATION}/E5SmallEmbedding.mlpackage\"\nditto \"${TOKENIZER_SOURCE}\" \"${DESTINATION}/Tokenizer\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		000000000000000000000014 /* Sources */ = {

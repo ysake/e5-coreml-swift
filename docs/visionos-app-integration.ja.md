@@ -21,7 +21,7 @@
 
 ## 最小 iOS smoke app
 
-`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、標準では deterministic embedder を実行します。そのため、生成済み model assets なしで build と test ができます。
+`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、`Models/E5SmallEmbedding.mlpackage` と `Tokenizer/` の生成済み assets があることを前提にします。Xcode target は assets がない場合に build error にし、存在する場合は app bundle にコピーします。
 
 App を build します。
 
@@ -45,7 +45,9 @@ xcodebuild \
   test
 ```
 
-標準の Simulator tests は、生成済み assets なしで deterministic embedding の出力と app bundle asset status の評価を確認します。完全な Core ML inference は、生成済み model / tokenizer assets が app target に同梱されている場合だけ実行される asset-backed test で確認します。
+Simulator tests は、deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference を検証します。
+
+Simulator 上では、GPU / MPSGraph backend の問題でゼロベクトルになるケースを避けるため、`CoreMLTextEmbedder` は Core ML model を CPU-only compute units で読み込みます。
 
 ## Assets の生成
 

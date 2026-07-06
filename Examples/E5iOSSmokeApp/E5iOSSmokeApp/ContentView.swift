@@ -2,7 +2,8 @@ import E5EmbeddingCore
 import SwiftUI
 
 struct ContentView: View {
-    @State private var report: E5SmokeReport?
+    @State private var deterministicReport: E5SmokeReport?
+    @State private var coreMLReport: E5SmokeReport?
     @State private var assetStatus: CoreMLTextEmbeddingAssetStatus?
     @State private var errorMessage: String?
     @State private var isRunning = false
@@ -11,13 +12,8 @@ struct ContentView: View {
         NavigationStack {
             List {
                 Section("Deterministic Smoke") {
-                    if let report {
-                        LabeledContent("Text", value: report.text)
-                        LabeledContent("Dimension", value: "\(report.dimension)")
-                        LabeledContent("L2 Norm", value: report.formattedL2Norm)
-                        Text(report.previewDescription)
-                            .font(.system(.footnote, design: .monospaced))
-                            .textSelection(.enabled)
+                    if let deterministicReport {
+                        SmokeReportView(report: deterministicReport)
                     } else {
                         Text(isRunning ? "Running..." : "Not run")
                             .foregroundStyle(.secondary)
@@ -41,6 +37,15 @@ struct ContentView: View {
                         }
                     } else {
                         Text("Not checked")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Section("Core ML Smoke") {
+                    if let coreMLReport {
+                        SmokeReportView(report: coreMLReport)
+                    } else {
+                        Text(isRunning ? "Running..." : "Not run")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -76,11 +81,26 @@ struct ContentView: View {
         defer { isRunning = false }
 
         do {
-            report = try await E5SmokeRunner.deterministicSmoke()
+            deterministicReport = try await E5SmokeRunner.deterministicSmoke()
+            coreMLReport = try await E5SmokeRunner.coreMLSmoke()
         } catch {
-            report = nil
+            deterministicReport = nil
+            coreMLReport = nil
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+private struct SmokeReportView: View {
+    let report: E5SmokeReport
+
+    var body: some View {
+        LabeledContent("Text", value: report.text)
+        LabeledContent("Dimension", value: "\(report.dimension)")
+        LabeledContent("L2 Norm", value: report.formattedL2Norm)
+        Text(report.previewDescription)
+            .font(.system(.footnote, design: .monospaced))
+            .textSelection(.enabled)
     }
 }
 
