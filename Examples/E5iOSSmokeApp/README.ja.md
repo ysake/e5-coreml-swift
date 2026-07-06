@@ -1,6 +1,6 @@
-# E5 iOS Smoke App
+# E5 iOS / visionOS Smoke App
 
-`E5EmbeddingCore` を iOS アプリ target から利用し、生成済み local assets を同梱して、iOS Simulator 上で test できることを確認するための最小 App です。
+`E5EmbeddingCore` を Apple platform app target から利用し、生成済み local assets を同梱できることを確認するための最小 App です。
 
 この App は、repository root に以下の生成済み assets があることを前提にします。
 
@@ -19,13 +19,23 @@ Xcode で project を開きます。
 open Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj
 ```
 
-CLI から build する場合:
+CLI から iOS Simulator 向けに build する場合:
 
 ```bash
 xcodebuild \
   -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
   -scheme E5iOSSmokeApp \
   -destination 'generic/platform=iOS Simulator' \
+  build
+```
+
+visionOS Simulator 向けに build する場合:
+
+```bash
+xcodebuild \
+  -project Examples/E5iOSSmokeApp/E5iOSSmokeApp.xcodeproj \
+  -scheme E5iOSSmokeApp \
+  -destination 'generic/platform=visionOS Simulator' \
   build
 ```
 
@@ -41,6 +51,6 @@ xcodebuild \
   test
 ```
 
-Test target は、iOS Simulator 上で deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference、related/unrelated similarity validation を検証します。
+Test target は、iOS Simulator 上で deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference、related/unrelated similarity validation を検証します。実機検証では、同じ app target を iOS または visionOS で利用できます。
 
 実機での FLOAT16/FLOAT32 検証は [`../../docs/float16-device-validation.ja.md`](../../docs/float16-device-validation.ja.md) を参照してください。

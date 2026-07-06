@@ -186,6 +186,9 @@ private struct ValidationReportView: View {
         LabeledContent("Query Time", value: report.query.formattedElapsedMilliseconds)
         LabeledContent("Related Time", value: report.relatedPassage.formattedElapsedMilliseconds)
         LabeledContent("Unrelated Time", value: report.unrelatedPassage.formattedElapsedMilliseconds)
+        ValidationEmbeddingChecks(title: "Query Checks", report: report.query)
+        ValidationEmbeddingChecks(title: "Related Checks", report: report.relatedPassage)
+        ValidationEmbeddingChecks(title: "Unrelated Checks", report: report.unrelatedPassage)
         Text("Query: \(report.query.text)")
             .font(.footnote)
             .foregroundStyle(.secondary)
@@ -198,6 +201,20 @@ private struct ValidationReportView: View {
             .font(.footnote)
             .foregroundStyle(.secondary)
             .textSelection(.enabled)
+    }
+}
+
+private struct ValidationEmbeddingChecks: View {
+    let title: String
+    let report: E5SmokeReport
+
+    var body: some View {
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+        LabeledContent("Dimension", value: "\(report.dimension)")
+        LabeledContent("L2 Norm", value: report.formattedL2Norm)
+        LabeledContent("Finite", value: report.isFinite ? "Yes" : "No")
+        LabeledContent("All Zero", value: report.isAllZero ? "Yes" : "No")
     }
 }
 
