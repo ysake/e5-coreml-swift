@@ -34,4 +34,4 @@ xcodebuild \
   test
 ```
 
-Test target は、iOS Simulator 上で deterministic embedding の出力を検証し、app bundle asset status を評価しても crash しないことを確認します。
+Test target は、iOS Simulator 上で deterministic embedding の出力を検証し、app bundle asset status を評価しても crash しないことを確認します。生成済み Core ML model と tokenizer assets が app target に同梱されている場合だけ、追加の asset-backed inference test が実行されます。

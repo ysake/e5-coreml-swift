@@ -34,4 +34,4 @@ xcodebuild \
   test
 ```
 
-The test target verifies deterministic embedding output on iOS Simulator and checks that app-bundle asset status can be evaluated without crashing.
+The test target verifies deterministic embedding output on iOS Simulator and checks that app-bundle asset status can be evaluated without crashing. An additional asset-backed inference test is skipped unless generated Core ML model and tokenizer assets are bundled into the app target.

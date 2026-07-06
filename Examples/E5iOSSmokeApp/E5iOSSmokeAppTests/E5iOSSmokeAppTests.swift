@@ -31,4 +31,23 @@ final class E5iOSSmokeAppTests: XCTestCase {
         throw XCTSkip("This smoke test is intended for iOS Simulator.")
         #endif
     }
+
+    func testAppBundleCoreMLInferenceWhenAssetsAreBundled() async throws {
+        #if os(iOS)
+        let assets = CoreMLTextEmbeddingAssets.appBundle(.main)
+        let status = assets.status()
+        guard status.isReady else {
+            throw XCTSkip("Core ML model/tokenizer assets are not bundled: \(status.errorDescription ?? "missing assets")")
+        }
+
+        let embedder = try CoreMLTextEmbedder(assets: assets)
+        let embedding = try await embedder.embed("テスト", purpose: .query)
+
+        XCTAssertEqual(embedding.count, 384)
+        XCTAssertFalse(embedding.contains { $0.isNaN || !$0.isFinite })
+        XCTAssertEqual(CosineSimilarity.l2Norm(embedding), 1, accuracy: 0.01)
+        #else
+        throw XCTSkip("This smoke test is intended for iOS Simulator.")
+        #endif
+    }
 }

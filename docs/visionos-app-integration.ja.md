@@ -45,7 +45,7 @@ xcodebuild \
   test
 ```
 
-Simulator tests は deterministic embedding の出力と app bundle asset status の評価を確認します。生成済み model / tokenizer assets を app target に追加しない限り、完全な Core ML inference の検証は行いません。
+標準の Simulator tests は、生成済み assets なしで deterministic embedding の出力と app bundle asset status の評価を確認します。完全な Core ML inference は、生成済み model / tokenizer assets が app target に同梱されている場合だけ実行される asset-backed test で確認します。
 
 ## Assets の生成
 

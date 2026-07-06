@@ -45,7 +45,7 @@ xcodebuild \
   test
 ```
 
-The simulator tests verify deterministic embedding output and app-bundle asset status evaluation. They do not validate full Core ML inference unless generated model and tokenizer assets are added to the app target.
+The default simulator tests verify deterministic embedding output and app-bundle asset status evaluation without requiring generated assets. Full Core ML inference is covered only by the asset-backed test, which is skipped unless generated model and tokenizer assets are bundled into the app target.
 
 ## Generate assets
 
