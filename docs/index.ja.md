@@ -11,12 +11,14 @@
 
 - [`cli-usage.ja.md`](cli-usage.ja.md): CLI コマンドとオプションの詳細
 - [`visionos-app-integration.ja.md`](visionos-app-integration.ja.md): iOS / iPadOS / visionOS アプリ組み込み、asset 同梱、runtime behavior
+- [`float16-device-validation.ja.md`](float16-device-validation.ja.md): iOS / visionOS 実機での FLOAT16/FLOAT32 検証チェックリスト
 - [`../Examples/E5iOSSmokeApp/README.ja.md`](../Examples/E5iOSSmokeApp/README.ja.md): 最小 iOS smoke app と Simulator tests
 
 英語版:
 
 - [`cli-usage.md`](cli-usage.md)
 - [`visionos-app-integration.md`](visionos-app-integration.md)
+- [`float16-device-validation.md`](float16-device-validation.md)
 - [`../Examples/E5iOSSmokeApp/README.md`](../Examples/E5iOSSmokeApp/README.md)
 
 ## 技術メモ

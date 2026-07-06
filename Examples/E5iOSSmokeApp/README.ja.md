@@ -9,7 +9,7 @@ Models/E5SmallEmbedding.mlpackage
 Tokenizer/
 ```
 
-Xcode target は assets がない場合に build error にし、存在する場合は Resources build phase で app bundle に同梱します。App では確認用文字列を編集でき、deterministic smoke result と Core ML smoke result の両方を表示します。
+Xcode target は assets がない場合に build error にし、存在する場合は Resources build phase で app bundle に同梱します。App では query と passage の入力文字列を編集でき、deterministic、Core ML、similarity validation の結果を表示します。
 
 ## 実行
 
@@ -41,4 +41,6 @@ xcodebuild \
   test
 ```
 
-Test target は、iOS Simulator 上で deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference を検証します。
+Test target は、iOS Simulator 上で deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference、related/unrelated similarity validation を検証します。
+
+実機での FLOAT16/FLOAT32 検証は [`../../docs/float16-device-validation.ja.md`](../../docs/float16-device-validation.ja.md) を参照してください。

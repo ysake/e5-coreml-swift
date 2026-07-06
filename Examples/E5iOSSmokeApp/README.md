@@ -9,7 +9,7 @@ Models/E5SmallEmbedding.mlpackage
 Tokenizer/
 ```
 
-The Xcode target fails the build if those assets are missing, then bundles them through the Resources build phase. The app lets you edit the smoke text and shows both a deterministic smoke result and a Core ML smoke result.
+The Xcode target fails the build if those assets are missing, then bundles them through the Resources build phase. The app lets you edit the query and passage texts, then shows deterministic, Core ML, and similarity validation results.
 
 ## Run
 
@@ -41,4 +41,6 @@ xcodebuild \
   test
 ```
 
-The test target verifies deterministic embedding output, app-bundle asset readiness, and asset-backed Core ML inference on iOS Simulator.
+The test target verifies deterministic embedding output, app-bundle asset readiness, asset-backed Core ML inference, and related/unrelated similarity validation on iOS Simulator.
+
+For physical-device FLOAT16/FLOAT32 validation, see [`../../docs/float16-device-validation.md`](../../docs/float16-device-validation.md).
