@@ -5,9 +5,9 @@ import XCTest
 final class E5iOSSmokeAppTests: XCTestCase {
     func testDeterministicSmokeRunsOnIOSSimulator() async throws {
         #if os(iOS)
-        let report = try await E5SmokeRunner.deterministicSmoke(text: "テスト")
+        let report = try await E5SmokeRunner.deterministicSmoke(text: "検索テキスト")
 
-        XCTAssertEqual(report.text, "テスト")
+        XCTAssertEqual(report.text, "検索テキスト")
         XCTAssertEqual(report.dimension, 384)
         XCTAssertEqual(report.l2Norm, 1, accuracy: 0.0001)
         XCTAssertEqual(report.previewValues.count, 6)
@@ -31,9 +31,9 @@ final class E5iOSSmokeAppTests: XCTestCase {
 
     func testAppBundleCoreMLInferenceRunsOnIOSSimulator() async throws {
         #if os(iOS)
-        let report = try await E5SmokeRunner.coreMLSmoke(text: "テスト", bundle: .main)
+        let report = try await E5SmokeRunner.coreMLSmoke(text: "検索テキスト", bundle: .main)
 
-        XCTAssertEqual(report.text, "テスト")
+        XCTAssertEqual(report.text, "検索テキスト")
         XCTAssertEqual(report.dimension, 384)
         XCTAssertEqual(report.l2Norm, 1, accuracy: 0.01)
         XCTAssertEqual(report.previewValues.count, 6)

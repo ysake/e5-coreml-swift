@@ -21,7 +21,7 @@
 
 ## 最小 iOS smoke app
 
-`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、`Models/E5SmallEmbedding.mlpackage` と `Tokenizer/` の生成済み assets があることを前提にします。Xcode target は assets の存在を検証し、Resources build phase で app bundle に同梱します。
+`Examples/E5iOSSmokeApp/` には、小さな SwiftUI app target と XCTest target があります。この App は local Swift package dependency 経由で `E5EmbeddingCore` を使い、`Models/E5SmallEmbedding.mlpackage` と `Tokenizer/` の生成済み assets があることを前提にします。Xcode target は Resources build phase で assets を app bundle に同梱するため、local asset path が存在しない場合は build error になります。
 
 App を build します。
 

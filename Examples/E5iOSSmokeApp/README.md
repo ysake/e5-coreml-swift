@@ -9,7 +9,7 @@ Models/E5SmallEmbedding.mlpackage
 Tokenizer/
 ```
 
-The Xcode target fails the build if those assets are missing, then bundles them through the Resources build phase. The app shows both a deterministic smoke result and a Core ML smoke result.
+The Xcode target fails the build if those assets are missing, then bundles them through the Resources build phase. The app lets you edit the smoke text and shows both a deterministic smoke result and a Core ML smoke result.
 
 ## Run
 

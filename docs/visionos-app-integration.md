@@ -21,7 +21,7 @@ This package provides the reusable embedding library, macOS validation CLIs, and
 
 ## Minimal iOS smoke app
 
-`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and expects generated assets at `Models/E5SmallEmbedding.mlpackage` and `Tokenizer/`. Its Xcode target validates that those assets exist, then bundles them through the Resources build phase.
+`Examples/E5iOSSmokeApp/` contains a small SwiftUI app target and an XCTest target. The app uses `E5EmbeddingCore` through the local Swift package dependency and expects generated assets at `Models/E5SmallEmbedding.mlpackage` and `Tokenizer/`. Its Xcode target bundles those assets through the Resources build phase, so the build fails if the local asset paths are missing.
 
 Build the app:
 

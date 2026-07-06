@@ -1,4 +1,5 @@
 import E5EmbeddingCore
+import Foundation
 import SwiftUI
 
 struct ContentView: View {
@@ -7,10 +8,22 @@ struct ContentView: View {
     @State private var assetStatus: CoreMLTextEmbeddingAssetStatus?
     @State private var errorMessage: String?
     @State private var isRunning = false
+    @State private var smokeText = E5SmokeRunner.sampleText
+
+    private var canRunSmoke: Bool {
+        !isRunning && !smokeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     var body: some View {
         NavigationStack {
             List {
+                Section("Input") {
+                    TextField("Text", text: $smokeText, axis: .vertical)
+                        .lineLimit(1...3)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+
                 Section("Deterministic Smoke") {
                     if let deterministicReport {
                         SmokeReportView(report: deterministicReport)
@@ -65,7 +78,12 @@ struct ContentView: View {
                         await runSmoke()
                     }
                 }
-                .disabled(isRunning)
+                .disabled(!canRunSmoke)
+            }
+            .onChange(of: smokeText) { _, _ in
+                deterministicReport = nil
+                coreMLReport = nil
+                errorMessage = nil
             }
             .task {
                 await runSmoke()
@@ -75,14 +93,22 @@ struct ContentView: View {
 
     @MainActor
     private func runSmoke() async {
+        let text = smokeText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else {
+            deterministicReport = nil
+            coreMLReport = nil
+            errorMessage = "Text must not be empty."
+            return
+        }
+
         isRunning = true
         errorMessage = nil
         assetStatus = E5SmokeRunner.assetStatus()
         defer { isRunning = false }
 
         do {
-            deterministicReport = try await E5SmokeRunner.deterministicSmoke()
-            coreMLReport = try await E5SmokeRunner.coreMLSmoke()
+            deterministicReport = try await E5SmokeRunner.deterministicSmoke(text: text)
+            coreMLReport = try await E5SmokeRunner.coreMLSmoke(text: text)
         } catch {
             deterministicReport = nil
             coreMLReport = nil
