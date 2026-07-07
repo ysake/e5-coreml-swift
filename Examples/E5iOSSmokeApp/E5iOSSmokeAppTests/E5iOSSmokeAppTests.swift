@@ -77,4 +77,72 @@ final class E5iOSSmokeAppTests: XCTestCase {
         throw XCTSkip("This validation test is intended for iOS Simulator.")
         #endif
     }
+
+    func testCopyableReportIncludesValidationDetails() {
+        let assetStatus = CoreMLTextEmbeddingAssetStatus(
+            isReady: true,
+            modelURL: URL(fileURLWithPath: "/tmp/E5SmallEmbedding.mlpackage"),
+            tokenizerDirectory: URL(fileURLWithPath: "/tmp/Tokenizer"),
+            modelSizeInBytes: 224_000_000,
+            errorDescription: nil
+        )
+        let query = E5SmokeReport(
+            text: "車内の収納を増やしたい",
+            purpose: .query,
+            dimension: 384,
+            l2Norm: 1,
+            isFinite: true,
+            isAllZero: false,
+            elapsedMilliseconds: 12.3,
+            previewValues: [0.1, -0.2]
+        )
+        let related = E5SmokeReport(
+            text: "車内収納を増やす。",
+            purpose: .passage,
+            dimension: 384,
+            l2Norm: 1,
+            isFinite: true,
+            isAllZero: false,
+            elapsedMilliseconds: 13.4,
+            previewValues: [0.2, -0.1]
+        )
+        let unrelated = E5SmokeReport(
+            text: "夕食にパスタを作る。",
+            purpose: .passage,
+            dimension: 384,
+            l2Norm: 1,
+            isFinite: true,
+            isAllZero: false,
+            elapsedMilliseconds: 14.5,
+            previewValues: [-0.2, 0.1]
+        )
+        let validation = E5ValidationReport(
+            query: query,
+            relatedPassage: related,
+            unrelatedPassage: unrelated,
+            relatedSimilarity: 0.82,
+            unrelatedSimilarity: 0.21
+        )
+
+        let report = E5SmokeRunner.copyableReport(
+            assetStatus: assetStatus,
+            deterministicReport: query,
+            coreMLReport: query,
+            validationReport: validation,
+            errorMessage: nil
+        )
+
+        XCTAssertTrue(report.contains("# E5 Smoke Validation Report"))
+        XCTAssertTrue(report.contains("- Ready: Yes"))
+        XCTAssertTrue(report.contains("- Model: E5SmallEmbedding.mlpackage"))
+        XCTAssertTrue(report.contains("- Dimension: 384"))
+        XCTAssertTrue(report.contains("- L2 Norm: 1.0000"))
+        XCTAssertTrue(report.contains("- Finite: Yes"))
+        XCTAssertTrue(report.contains("- All Zero: No"))
+        XCTAssertTrue(report.contains("- Related Similarity: 0.8200"))
+        XCTAssertTrue(report.contains("- Unrelated Similarity: 0.2100"))
+        XCTAssertTrue(report.contains("- Margin: 0.6100"))
+        XCTAssertTrue(report.contains("- Similarity Check: Pass"))
+        XCTAssertTrue(report.contains("- Query Text: 車内の収納を増やしたい"))
+    }
 }

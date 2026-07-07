@@ -51,6 +51,6 @@ xcodebuild \
   test
 ```
 
-The test target verifies deterministic embedding output, app-bundle asset readiness, asset-backed Core ML inference, and related/unrelated similarity validation on iOS Simulator. Physical device validation can use the same app target on iOS or visionOS.
+The test target verifies deterministic embedding output, app-bundle asset readiness, asset-backed Core ML inference, and related/unrelated similarity validation on iOS Simulator. Physical device validation can use the same app target on iOS or visionOS. After running the app, use **Copy Report** to paste the asset status, embedding checks, similarity values, and timings into the validation issue.
 
 For physical-device FLOAT16/FLOAT32 validation, see [`../../docs/float16-device-validation.md`](../../docs/float16-device-validation.md).

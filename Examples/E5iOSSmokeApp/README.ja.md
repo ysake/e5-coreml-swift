@@ -51,6 +51,6 @@ xcodebuild \
   test
 ```
 
-Test target は、iOS Simulator 上で deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference、related/unrelated similarity validation を検証します。実機検証では、同じ app target を iOS または visionOS で利用できます。
+Test target は、iOS Simulator 上で deterministic embedding の出力、app bundle asset readiness、asset-backed Core ML inference、related/unrelated similarity validation を検証します。実機検証では、同じ app target を iOS または visionOS で利用できます。App 実行後は **Copy Report** で asset status、embedding check、similarity、推論時間をまとめて validation issue に貼り付けられます。
 
 実機での FLOAT16/FLOAT32 検証は [`../../docs/float16-device-validation.ja.md`](../../docs/float16-device-validation.ja.md) を参照してください。

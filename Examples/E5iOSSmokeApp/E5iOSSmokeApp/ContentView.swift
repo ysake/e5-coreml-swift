@@ -1,6 +1,9 @@
 import E5EmbeddingCore
 import Foundation
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct ContentView: View {
     @State private var deterministicReport: E5SmokeReport?
@@ -12,6 +15,7 @@ struct ContentView: View {
     @State private var queryText = E5SmokeRunner.sampleText
     @State private var relatedPassageText = E5SmokeRunner.sampleRelatedText
     @State private var unrelatedPassageText = E5SmokeRunner.sampleUnrelatedText
+    @State private var copyStatusMessage: String?
 
     private var canRunSmoke: Bool {
         !isRunning && [
@@ -19,6 +23,24 @@ struct ContentView: View {
             relatedPassageText,
             unrelatedPassageText
         ].allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    private var canCopyReport: Bool {
+        assetStatus != nil ||
+            deterministicReport != nil ||
+            coreMLReport != nil ||
+            validationReport != nil ||
+            errorMessage != nil
+    }
+
+    private var copyableReport: String {
+        E5SmokeRunner.copyableReport(
+            assetStatus: assetStatus,
+            deterministicReport: deterministicReport,
+            coreMLReport: coreMLReport,
+            validationReport: validationReport,
+            errorMessage: errorMessage
+        )
     }
 
     var body: some View {
@@ -100,9 +122,37 @@ struct ContentView: View {
                             .textSelection(.enabled)
                     }
                 }
+
+                Section("Copyable Report") {
+                    if canCopyReport {
+                        Text(copyableReport)
+                            .font(.system(.footnote, design: .monospaced))
+                            .textSelection(.enabled)
+                        Button {
+                            copyReport()
+                        } label: {
+                            Label("Copy Report", systemImage: "doc.on.doc")
+                        }
+                        if let copyStatusMessage {
+                            Text(copyStatusMessage)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Text(isRunning ? "Running..." : "Run smoke to create a report.")
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             .navigationTitle("E5 Smoke")
             .toolbar {
+                Button {
+                    copyReport()
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                .disabled(!canCopyReport)
+
                 Button(isRunning ? "Running" : "Run") {
                     Task {
                         await runSmoke()
@@ -132,6 +182,7 @@ struct ContentView: View {
 
         isRunning = true
         errorMessage = nil
+        copyStatusMessage = nil
         assetStatus = E5SmokeRunner.assetStatus()
         defer { isRunning = false }
 
@@ -155,6 +206,18 @@ struct ContentView: View {
         coreMLReport = nil
         validationReport = nil
         errorMessage = nil
+        copyStatusMessage = nil
+    }
+
+    @MainActor
+    private func copyReport() {
+        guard canCopyReport else { return }
+        #if canImport(UIKit)
+        UIPasteboard.general.string = copyableReport
+        copyStatusMessage = "Copied"
+        #else
+        copyStatusMessage = "Clipboard is not available on this platform."
+        #endif
     }
 }
 

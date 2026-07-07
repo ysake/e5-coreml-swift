@@ -174,6 +174,106 @@ enum E5SmokeRunner {
         )
         .measurement(embedding: embedding)
     }
+
+    static func copyableReport(
+        assetStatus: CoreMLTextEmbeddingAssetStatus?,
+        deterministicReport: E5SmokeReport?,
+        coreMLReport: E5SmokeReport?,
+        validationReport: E5ValidationReport?,
+        errorMessage: String?
+    ) -> String {
+        var lines: [String] = [
+            "# E5 Smoke Validation Report",
+            ""
+        ]
+
+        lines.append("## Bundled Assets")
+        if let assetStatus {
+            lines.append("- Ready: \(assetStatus.isReady ? "Yes" : "No")")
+            if let modelURL = assetStatus.modelURL {
+                lines.append("- Model: \(modelURL.lastPathComponent)")
+            }
+            if let modelSizeInBytes = assetStatus.modelSizeInBytes {
+                let modelSize = ByteCountFormatter.string(
+                    fromByteCount: modelSizeInBytes,
+                    countStyle: .file
+                )
+                lines.append("- Model Size: \(modelSize)")
+            }
+            if let tokenizerDirectory = assetStatus.tokenizerDirectory {
+                lines.append("- Tokenizer: \(tokenizerDirectory.lastPathComponent)")
+            }
+            if let errorDescription = assetStatus.errorDescription {
+                lines.append("- Asset Error: \(errorDescription)")
+            }
+        } else {
+            lines.append("- Ready: Not checked")
+        }
+
+        appendSmokeReport("Deterministic Smoke", deterministicReport, to: &lines)
+        appendSmokeReport("Core ML Smoke", coreMLReport, to: &lines)
+
+        lines.append("")
+        lines.append("## Core ML Validation")
+        if let validationReport {
+            lines.append("- Related Similarity: \(validationReport.formattedRelatedSimilarity)")
+            lines.append("- Unrelated Similarity: \(validationReport.formattedUnrelatedSimilarity)")
+            lines.append("- Margin: \(validationReport.formattedSimilarityMargin)")
+            lines.append("- Similarity Check: \(validationReport.passesSimilarityCheck ? "Pass" : "Fail")")
+            lines.append("- Query Time: \(validationReport.query.formattedElapsedMilliseconds)")
+            lines.append("- Related Time: \(validationReport.relatedPassage.formattedElapsedMilliseconds)")
+            lines.append("- Unrelated Time: \(validationReport.unrelatedPassage.formattedElapsedMilliseconds)")
+            appendEmbeddingChecks("Query", validationReport.query, to: &lines)
+            appendEmbeddingChecks("Related", validationReport.relatedPassage, to: &lines)
+            appendEmbeddingChecks("Unrelated", validationReport.unrelatedPassage, to: &lines)
+            lines.append("- Query Text: \(validationReport.query.text)")
+            lines.append("- Related Text: \(validationReport.relatedPassage.text)")
+            lines.append("- Unrelated Text: \(validationReport.unrelatedPassage.text)")
+        } else {
+            lines.append("- Result: Not run")
+        }
+
+        if let errorMessage {
+            lines.append("")
+            lines.append("## Error")
+            lines.append(errorMessage)
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    private static func appendSmokeReport(
+        _ title: String,
+        _ report: E5SmokeReport?,
+        to lines: inout [String]
+    ) {
+        lines.append("")
+        lines.append("## \(title)")
+        guard let report else {
+            lines.append("- Result: Not run")
+            return
+        }
+
+        lines.append("- Text: \(report.text)")
+        lines.append("- Purpose: \(report.purpose.rawValue)")
+        lines.append("- Dimension: \(report.dimension)")
+        lines.append("- L2 Norm: \(report.formattedL2Norm)")
+        lines.append("- Finite: \(report.isFinite ? "Yes" : "No")")
+        lines.append("- All Zero: \(report.isAllZero ? "Yes" : "No")")
+        lines.append("- Inference: \(report.formattedElapsedMilliseconds)")
+        lines.append("- Preview: \(report.previewDescription)")
+    }
+
+    private static func appendEmbeddingChecks(
+        _ title: String,
+        _ report: E5SmokeReport,
+        to lines: inout [String]
+    ) {
+        lines.append("- \(title) Dimension: \(report.dimension)")
+        lines.append("- \(title) L2 Norm: \(report.formattedL2Norm)")
+        lines.append("- \(title) Finite: \(report.isFinite ? "Yes" : "No")")
+        lines.append("- \(title) All Zero: \(report.isAllZero ? "Yes" : "No")")
+    }
 }
 
 private struct E5EmbeddingMeasurement: Sendable {
