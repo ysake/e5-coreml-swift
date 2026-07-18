@@ -19,10 +19,12 @@ Expected local assets:
 
 ```text
 Models/E5SmallEmbedding.mlpackage
+Models/E5ModelProvenance.json
 Tokenizer/
 ```
 
-The generated assets are ignored by git.
+The generated assets are ignored by git. The provenance sidecar records the
+pinned model source and hashes needed to audit the generated assets.
 
 ## `e5-embed`
 

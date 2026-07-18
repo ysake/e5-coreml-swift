@@ -37,13 +37,49 @@ scripts/convert_e5_small_to_coreml.py
 
 ## 変換スクリプトの概要
 
-1. Hugging Face Transformersで `intfloat/multilingual-e5-small` を読み込む。
+1. 固定した Hugging Face commit から Transformers で `intfloat/multilingual-e5-small` を読み込む。
 2. encoderをwrapper moduleで包む。
 3. `last_hidden_state` に対してattention mask付きmean poolingを行う。
 4. L2 normalizationを行う。
 5. `torch.jit.trace` する。
 6. `coremltools.convert` で `.mlpackage` に変換する。
-7. `Models/E5SmallEmbedding.mlpackage` に保存する。
+7. Core ML metadata に model ID、revision、license ID、sequence length、precision を追加する。
+8. model、tokenizer、`Models/E5ModelProvenance.json` sidecar を保存する。
+
+## Revision と provenance
+
+変換スクリプトの標準 revision は完全な Hugging Face commit SHA です。同じ revision を
+`AutoModel.from_pretrained` と `AutoTokenizer.from_pretrained` の両方へ渡します。
+`main` のように移動する ref は受け付けません。model を更新する場合は、別の完全な commit
+SHA を明示します。
+
+```bash
+python scripts/convert_e5_small_to_coreml.py \
+  --revision <hugging-face-commit-sha> \
+  --validate
+```
+
+`Models/E5ModelProvenance.json` には以下を記録します。
+
+- 変換元 model ID、requested / resolved revision、URL、license identifier
+- max sequence length、compute precision、output name、embedding dimension
+- Python、NumPy、PyTorch、Transformers、coremltools の version
+- Core ML package の決定的な `sha256-tree-v1` digest
+- すべての tokenizer file の SHA-256
+
+tree digest は、sort した各 relative file path とその file の SHA-256 を組み合わせて hash
+します。sidecar 自身が記録済み hash を変えないよう、`--provenance-output` は model / tokenizer
+output directory の外へ配置します。
+
+標準の revision と license identifier は標準 E5 model にだけ適用します。`--model-id` を変更
+する場合は `--revision` と `--license-id` の明示が必要です。この metadata は consumer 側の
+棚卸しを補助しますが、法務確認や license 本文そのものを置き換えるものではありません。
+
+model asset をダウンロードせずに provenance utility の test を実行できます。
+
+```bash
+python3 -m unittest discover -s scripts/tests -v
+```
 
 ## 注意点
 

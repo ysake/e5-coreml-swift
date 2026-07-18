@@ -64,6 +64,7 @@ The script writes:
 
 ```text
 Models/E5SmallEmbedding.mlpackage
+Models/E5ModelProvenance.json
 Tokenizer/
   tokenizer.json
   tokenizer_config.json
@@ -78,11 +79,18 @@ Add these generated assets to the iOS, iPadOS, or visionOS app target:
 
 ```text
 E5SmallEmbedding.mlpackage
+E5ModelProvenance.json
 Tokenizer/
   tokenizer.json
   tokenizer_config.json
   special_tokens_map.json
 ```
+
+`E5ModelProvenance.json` is not required for embedding inference, but consumer
+apps should bundle it when they need to audit or display the exact model source,
+license identifier, conversion settings, and artifact hashes. Keep the full
+license text and required attribution notices as separate app resources; the
+provenance license identifier does not replace them.
 
 Xcode may compile `E5SmallEmbedding.mlpackage` into `E5SmallEmbedding.mlmodelc` in the app bundle. Add `Tokenizer/` as a folder reference when you want tokenizer JSON files to stay under `Tokenizer/`; adding the JSON files individually may flatten them into the app bundle resource root.
 

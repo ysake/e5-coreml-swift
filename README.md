@@ -64,6 +64,7 @@ Build and test the Swift package:
 ```bash
 swift build
 swift test
+python3 -m unittest discover -s scripts/tests -v
 ```
 
 Generate the Core ML model and tokenizer assets:
@@ -81,10 +82,14 @@ The script writes:
 
 ```text
 Models/E5SmallEmbedding.mlpackage
+Models/E5ModelProvenance.json
 Tokenizer/
 ```
 
-The model package can be large and is ignored by git by default.
+The model package can be large and is ignored by git by default. The provenance
+file records the pinned Hugging Face revision, source license identifier,
+conversion settings, tool versions, and SHA-256 hashes for the generated model
+and tokenizer assets.
 
 ## Usage
 
@@ -267,11 +272,26 @@ scripts/convert_e5_small_to_coreml.py
 
 The script:
 
-1. Loads `intfloat/multilingual-e5-small`.
+1. Loads `intfloat/multilingual-e5-small` from a pinned Hugging Face commit.
 2. Wraps the encoder with mean pooling.
 3. Applies L2 normalization.
 4. Converts to Core ML `.mlpackage`.
-5. Saves as `Models/E5SmallEmbedding.mlpackage`.
+5. Adds source model metadata to the Core ML model.
+6. Saves the model, tokenizer, and `Models/E5ModelProvenance.json` sidecar.
+
+The default model revision is a full commit SHA. To convert another revision,
+pass another full 40-character commit SHA explicitly:
+
+```bash
+python scripts/convert_e5_small_to_coreml.py \
+  --revision <hugging-face-commit-sha> \
+  --validate
+```
+
+When overriding `--model-id`, also pass that model's `--revision` and
+`--license-id`. The license identifier is provenance metadata for consumers; it
+does not replace review of the source model's actual license terms and
+attribution requirements.
 
 Tokenizer files should come from the same Hugging Face model repository as the converted model.
 

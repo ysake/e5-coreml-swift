@@ -19,10 +19,12 @@ python scripts/convert_e5_small_to_coreml.py --validate
 
 ```text
 Models/E5SmallEmbedding.mlpackage
+Models/E5ModelProvenance.json
 Tokenizer/
 ```
 
-生成された assets は git 管理対象外です。
+生成された assets は git 管理対象外です。provenance sidecar には、生成物を監査するための
+固定した変換元 model 情報と hash を記録します。
 
 ## `e5-embed`
 

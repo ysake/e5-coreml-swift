@@ -66,6 +66,7 @@ Swift package をビルド・テストします。
 ```bash
 swift build
 swift test
+python3 -m unittest discover -s scripts/tests -v
 ```
 
 Core ML モデルと tokenizer assets を生成します。
@@ -83,10 +84,13 @@ python scripts/convert_e5_small_to_coreml.py --validate
 
 ```text
 Models/E5SmallEmbedding.mlpackage
+Models/E5ModelProvenance.json
 Tokenizer/
 ```
 
-model package は大きくなるため、デフォルトでは git 管理から除外しています。
+model package は大きくなるため、デフォルトでは git 管理から除外しています。provenance
+file には固定した Hugging Face revision、変換元 license identifier、変換条件、tool
+version、生成した model / tokenizer assets の SHA-256 を記録します。
 
 ## 使い方
 
@@ -269,11 +273,25 @@ scripts/convert_e5_small_to_coreml.py
 
 スクリプトの役割:
 
-1. `intfloat/multilingual-e5-small` を読み込む。
+1. 固定した Hugging Face commit から `intfloat/multilingual-e5-small` を読み込む。
 2. encoder を mean pooling 付きで wrap する。
 3. L2 normalization を適用する。
 4. Core ML `.mlpackage` に変換する。
-5. `Models/E5SmallEmbedding.mlpackage` として保存する。
+5. Core ML model に変換元 model metadata を追加する。
+6. model、tokenizer、`Models/E5ModelProvenance.json` sidecar を保存する。
+
+標準の model revision は完全な commit SHA で固定しています。別の revision を変換する場合は、
+40文字の完全な commit SHA を明示します。
+
+```bash
+python scripts/convert_e5_small_to_coreml.py \
+  --revision <hugging-face-commit-sha> \
+  --validate
+```
+
+`--model-id` を変更する場合は、その model の `--revision` と `--license-id` も指定します。
+license identifier は consumer 向けの provenance metadata であり、変換元 model の実際の
+license 条件や attribution 要件の確認を置き換えるものではありません。
 
 tokenizer ファイルは、Core ML 変換元と同じ Hugging Face モデルリポジトリから取得します。
 
