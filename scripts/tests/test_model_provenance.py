@@ -17,6 +17,7 @@ from model_provenance import (  # noqa: E402
     DEFAULT_MODEL_LICENSE_ID,
     build_provenance,
     core_ml_metadata,
+    embedding_dimension_from_shape,
     ensure_provenance_output_is_separate,
     normalize_revision,
     resolve_license_id,
@@ -53,6 +54,13 @@ class ModelProvenanceTests(unittest.TestCase):
         self.assertEqual(resolve_license_id("owner/model", "Apache-2.0"), "Apache-2.0")
         with self.assertRaisesRegex(ValueError, "--license-id is required"):
             resolve_license_id("owner/model", None)
+
+    def test_embedding_dimension_comes_from_model_output_shape(self) -> None:
+        self.assertEqual(embedding_dimension_from_shape((1, 768)), 768)
+        with self.assertRaisesRegex(ValueError, "single two-dimensional embedding"):
+            embedding_dimension_from_shape((2, 768))
+        with self.assertRaisesRegex(ValueError, "greater than zero"):
+            embedding_dimension_from_shape((1, 0))
 
     def test_provenance_output_must_not_be_inside_hashed_assets(self) -> None:
         root = Path("/tmp/provenance-test")

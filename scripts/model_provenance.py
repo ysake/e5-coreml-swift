@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Sequence
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import quote
@@ -42,6 +43,16 @@ def resolve_license_id(model_id: str, license_id: str | None) -> str:
     if model_id == DEFAULT_MODEL_ID:
         return DEFAULT_MODEL_LICENSE_ID
     raise ValueError("--license-id is required when --model-id is overridden")
+
+
+def embedding_dimension_from_shape(shape: Sequence[int]) -> int:
+    """Read the actual embedding width from a single-example model output."""
+    if len(shape) != 2 or int(shape[0]) != 1:
+        raise ValueError("converted model must return a single two-dimensional embedding")
+    dimension = int(shape[1])
+    if dimension <= 0:
+        raise ValueError("converted model embedding dimension must be greater than zero")
+    return dimension
 
 
 def ensure_provenance_output_is_separate(

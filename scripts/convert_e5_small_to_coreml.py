@@ -33,6 +33,7 @@ from model_provenance import (
     DEFAULT_MODEL_REVISION,
     build_provenance,
     core_ml_metadata,
+    embedding_dimension_from_shape,
     ensure_provenance_output_is_separate,
     resolve_license_id,
     resolve_revision,
@@ -42,7 +43,6 @@ from model_provenance import (
 
 DEFAULT_MAX_LENGTH = 128
 DEFAULT_OUTPUT_FEATURE_NAME = "embedding"
-DEFAULT_EMBEDDING_DIMENSION = 384
 
 
 class E5EmbeddingWrapper(torch.nn.Module):
@@ -154,6 +154,11 @@ def convert(args: argparse.Namespace) -> None:
     example = encoded_example(tokenizer, args.max_length)
 
     with torch.no_grad():
+        example_embedding = wrapper(
+            example["input_ids"],
+            example["attention_mask"],
+        )
+        embedding_dimension = embedding_dimension_from_shape(example_embedding.shape)
         traced = torch.jit.trace(
             wrapper,
             (example["input_ids"], example["attention_mask"]),
@@ -215,7 +220,7 @@ def convert(args: argparse.Namespace) -> None:
         max_sequence_length=args.max_length,
         compute_precision=args.compute_precision,
         output_feature_name=DEFAULT_OUTPUT_FEATURE_NAME,
-        embedding_dimension=DEFAULT_EMBEDDING_DIMENSION,
+        embedding_dimension=embedding_dimension,
         tool_versions={
             "python": platform.python_version(),
             "numpy": np.__version__,
