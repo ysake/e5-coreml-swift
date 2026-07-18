@@ -19,16 +19,30 @@ visionOS Simulator testing.
 from __future__ import annotations
 
 import argparse
+import platform
 from pathlib import Path
 
 import numpy as np
 import torch
 import torch.nn.functional as F
+import transformers
 from transformers import AutoModel, AutoTokenizer
 
+from model_provenance import (
+    DEFAULT_MODEL_ID,
+    DEFAULT_MODEL_REVISION,
+    build_provenance,
+    core_ml_metadata,
+    ensure_provenance_output_is_separate,
+    resolve_license_id,
+    resolve_revision,
+    write_provenance,
+)
 
-DEFAULT_MODEL_ID = "intfloat/multilingual-e5-small"
+
 DEFAULT_MAX_LENGTH = 128
+DEFAULT_OUTPUT_FEATURE_NAME = "embedding"
+DEFAULT_EMBEDDING_DIMENSION = 384
 
 
 class E5EmbeddingWrapper(torch.nn.Module):
@@ -60,6 +74,17 @@ def parse_args() -> argparse.Namespace:
         description="Convert multilingual-e5-small to Core ML."
     )
     parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
+    parser.add_argument(
+        "--revision",
+        help=(
+            "Full Hugging Face model commit SHA used for both model and tokenizer. "
+            f"Defaults to {DEFAULT_MODEL_REVISION} for {DEFAULT_MODEL_ID}."
+        ),
+    )
+    parser.add_argument(
+        "--license-id",
+        help="SPDX-style source model license ID. Required for a custom model ID.",
+    )
     parser.add_argument("--max-length", type=int, default=DEFAULT_MAX_LENGTH)
     parser.add_argument(
         "--output",
@@ -70,6 +95,11 @@ def parse_args() -> argparse.Namespace:
         "--tokenizer-output",
         type=Path,
         default=Path("Tokenizer"),
+    )
+    parser.add_argument(
+        "--provenance-output",
+        type=Path,
+        default=Path("Models/E5ModelProvenance.json"),
     )
     parser.add_argument(
         "--compute-precision",
@@ -99,10 +129,25 @@ def encoded_example(tokenizer: AutoTokenizer, max_length: int) -> dict[str, torc
 
 
 def convert(args: argparse.Namespace) -> None:
+    resolved_revision = resolve_revision(args.model_id, args.revision)
+    requested_revision = args.revision or resolved_revision
+    license_id = resolve_license_id(args.model_id, args.license_id)
+    ensure_provenance_output_is_separate(
+        args.provenance_output,
+        args.output,
+        args.tokenizer_output,
+    )
+
     import coremltools as ct
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_id)
-    model = AutoModel.from_pretrained(args.model_id)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_id,
+        revision=resolved_revision,
+    )
+    model = AutoModel.from_pretrained(
+        args.model_id,
+        revision=resolved_revision,
+    )
     model.eval()
 
     wrapper = E5EmbeddingWrapper(model).eval()
@@ -139,9 +184,19 @@ def convert(args: argparse.Namespace) -> None:
             ),
         ],
         outputs=[
-            ct.TensorType(name="embedding"),
+            ct.TensorType(name=DEFAULT_OUTPUT_FEATURE_NAME),
         ],
     )
+
+    for key, value in core_ml_metadata(
+        model_id=args.model_id,
+        revision=resolved_revision,
+        license_id=license_id,
+        max_sequence_length=args.max_length,
+        compute_precision=args.compute_precision,
+    ).items():
+        mlmodel.user_defined_metadata[key] = value
+    mlmodel.license = license_id
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     mlmodel.save(args.output)
@@ -149,11 +204,33 @@ def convert(args: argparse.Namespace) -> None:
     args.tokenizer_output.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(args.tokenizer_output)
 
-    print(f"Saved Core ML model: {args.output}")
-    print(f"Saved tokenizer assets: {args.tokenizer_output}")
-
     if args.validate:
         validate(wrapper, mlmodel, tokenizer, args.max_length)
+
+    provenance = build_provenance(
+        model_id=args.model_id,
+        requested_revision=requested_revision,
+        resolved_revision=resolved_revision,
+        license_id=license_id,
+        max_sequence_length=args.max_length,
+        compute_precision=args.compute_precision,
+        output_feature_name=DEFAULT_OUTPUT_FEATURE_NAME,
+        embedding_dimension=DEFAULT_EMBEDDING_DIMENSION,
+        tool_versions={
+            "python": platform.python_version(),
+            "numpy": np.__version__,
+            "torch": torch.__version__,
+            "transformers": transformers.__version__,
+            "coremltools": ct.__version__,
+        },
+        model_output=args.output,
+        tokenizer_output=args.tokenizer_output,
+    )
+    write_provenance(args.provenance_output, provenance)
+
+    print(f"Saved Core ML model: {args.output}")
+    print(f"Saved tokenizer assets: {args.tokenizer_output}")
+    print(f"Saved model provenance: {args.provenance_output}")
 
 
 def validate(
@@ -195,7 +272,10 @@ def main() -> None:
     args = parse_args()
     if args.max_length <= 0:
         raise SystemExit("--max-length must be greater than zero")
-    convert(args)
+    try:
+        convert(args)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
 
 
 if __name__ == "__main__":

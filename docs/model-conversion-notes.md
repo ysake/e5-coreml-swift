@@ -37,13 +37,50 @@ scripts/convert_e5_small_to_coreml.py
 
 ## Script outline
 
-1. Load `intfloat/multilingual-e5-small` with Hugging Face Transformers.
+1. Load `intfloat/multilingual-e5-small` at a pinned Hugging Face commit with Transformers.
 2. Wrap the encoder with a PyTorch module.
 3. Apply attention-mask-aware mean pooling to `last_hidden_state`.
 4. Apply L2 normalization.
 5. Trace the module with `torch.jit.trace`.
 6. Convert to `.mlpackage` with `coremltools.convert`.
-7. Save as `Models/E5SmallEmbedding.mlpackage`.
+7. Add model ID, revision, license ID, sequence length, and precision to Core ML metadata.
+8. Save the model, tokenizer, and `Models/E5ModelProvenance.json` sidecar.
+
+## Revision and provenance
+
+The conversion script defaults to a full Hugging Face commit SHA and passes the
+same revision to both `AutoModel.from_pretrained` and
+`AutoTokenizer.from_pretrained`. Moving refs such as `main` are rejected. Update
+the model intentionally by supplying another full commit SHA:
+
+```bash
+python scripts/convert_e5_small_to_coreml.py \
+  --revision <hugging-face-commit-sha> \
+  --validate
+```
+
+`Models/E5ModelProvenance.json` records:
+
+- source model ID, requested/resolved revision, URL, and license identifier
+- max sequence length, compute precision, output name, and embedding dimension
+- Python, NumPy, PyTorch, Transformers, and coremltools versions
+- a deterministic `sha256-tree-v1` digest of the Core ML package
+- SHA-256 for every tokenizer file
+
+The tree digest hashes each sorted relative file path together with that file's
+SHA-256. Keep `--provenance-output` outside the model and tokenizer output
+directories so the sidecar cannot invalidate the artifact hash it contains.
+
+The default revision and license identifier apply only to the default E5 model.
+A custom `--model-id` requires explicit `--revision` and `--license-id` values.
+This metadata helps consumer audits but does not replace legal review or the
+license text itself.
+
+Run the provenance utility tests without downloading model assets:
+
+```bash
+python3 -m unittest discover -s scripts/tests -v
+```
 
 ## Notes
 

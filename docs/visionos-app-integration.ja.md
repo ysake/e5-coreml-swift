@@ -64,6 +64,7 @@ python scripts/convert_e5_small_to_coreml.py --validate
 
 ```text
 Models/E5SmallEmbedding.mlpackage
+Models/E5ModelProvenance.json
 Tokenizer/
   tokenizer.json
   tokenizer_config.json
@@ -78,11 +79,17 @@ Tokenizer/
 
 ```text
 E5SmallEmbedding.mlpackage
+E5ModelProvenance.json
 Tokenizer/
   tokenizer.json
   tokenizer_config.json
   special_tokens_map.json
 ```
+
+`E5ModelProvenance.json` は embedding inference には不要ですが、consumer app で正確な
+model の出自、license identifier、変換条件、artifact hash を監査または表示する場合は同梱
+します。完全な license 本文と必要な attribution notice は別の app resource として保持します。
+provenance の license identifier はそれらを置き換えません。
 
 Xcode は `E5SmallEmbedding.mlpackage` を app bundle 内の `E5SmallEmbedding.mlmodelc` に compile する場合があります。Tokenizer JSON files を `Tokenizer/` 配下に保ちたい場合は、`Tokenizer/` を folder reference として追加してください。JSON files を個別に追加すると app bundle root に flatten される場合があります。
 
